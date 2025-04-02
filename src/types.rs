@@ -217,7 +217,7 @@ where
     fn encode(&self) -> Vec<u8> {
         let mut v = Vec::new();
 
-        let size = Varint(v.len());
+        let size = Varint(self.len() + 1);
 
         v.extend_from_slice(&size.encode());
 

@@ -26,6 +26,7 @@ pub struct ApiVersionsResponse {
     pub error_code: i16,
     pub api_keys: Vec<SupportedVersionsKey>,
     pub throttle_time_ms: i32,
+    pub tagged_fields: u8,
 }
 
 fn get_supported_versions<P: AsRef<Path>>(path: P) -> Result<Vec<SupportedVersionsKey>, Error> {
@@ -77,15 +78,17 @@ impl ApiVersionsRequest {
             Err(err) => return Err(err),
         };
         let throttle_time_ms = 0;
+        let tagged_fields = 0;
 
         let mut response = ApiVersionsResponse {
             base,
             error_code,
             api_keys,
             throttle_time_ms,
+            tagged_fields,
         };
 
-        let res_size = response.size_in_bytes();
+        let res_size = response.size_in_bytes() - 4;
         response.base.size = res_size as i32;
 
         Ok(response)
