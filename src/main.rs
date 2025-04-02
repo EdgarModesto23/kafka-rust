@@ -1,37 +1,9 @@
-use anyhow::Error;
 use bytes::BytesMut;
-use codecrafters_kafka::kafka::{BaseRequest, BaseResponse};
-use codecrafters_kafka::{Decode, Encode};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::{TcpListener, TcpStream};
+use codecrafters_kafka::handle_client;
+use tokio::io::AsyncReadExt;
+use tokio::net::TcpListener;
 
 static SERVER_ADDRESS: &str = "127.0.0.1:9092";
-
-async fn respond(socket: &mut TcpStream, buf: &[u8]) {
-    if let Err(e) = socket.write_all(buf).await {
-        eprintln!("failed to write to socket; err = {e:?}");
-        return;
-    }
-    let _ = socket.flush().await;
-}
-
-async fn handle_client(buf: &[u8], socket: &mut TcpStream) -> Result<(), Error> {
-    println!("Handle client");
-
-    let mut offset = 0 as usize;
-    let request = BaseRequest::decode(buf, &mut offset);
-
-    println! {"{request:?}"}
-
-    let response = BaseResponse {
-        size: request.size,
-        correlation_id: request.correlation_id,
-    };
-
-    respond(socket, &response.encode()[..]).await;
-
-    Ok(())
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

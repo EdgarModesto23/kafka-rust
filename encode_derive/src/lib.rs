@@ -2,6 +2,34 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, Data, DeriveInput};
 
+#[proc_macro_derive(Size)]
+pub fn derive_size(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let name = &input.ident;
+
+    let size = match &input.data {
+        Data::Struct(data) => {
+            let field_sizes = data.fields.iter().map(|f| {
+                let field_name = &f.ident;
+                quote! {self.#field_name.size_in_bytes()}
+            });
+
+            quote! {0 #(+ #field_sizes)*}
+        }
+        _ => panic!("Encode derive is only intended for structs"),
+    };
+
+    let expanded = quote! {
+        impl Size for #name {
+            fn size_in_bytes(&self) -> usize {
+                #size
+            }
+        }
+    };
+
+    TokenStream::from(expanded)
+}
+
 #[proc_macro_derive(Encode)]
 pub fn derive_encode(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);

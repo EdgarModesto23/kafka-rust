@@ -11,3 +11,5 @@ encode_derive = {path = "./encode_derive"}
 bytes = "1.3.0"                                  # helps manage buffers
 thiserror = "2.0.12"                             # error handling
 tokio = {version = "1.44.0", features = ["full"]}
+serde_json = {version = "1.0.140"}
+serde = {version = "1.0.219", features = ["derive"]}

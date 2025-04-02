@@ -1,5 +1,5 @@
-use crate::{Decode, Encode};
-use encode_derive::{Decode, Encode};
+use crate::{Decode, Encode, Size};
+use encode_derive::{Decode, Size};
 
 #[derive(Debug, Encode, Decode)]
 pub struct BaseRequest {
@@ -9,7 +9,7 @@ pub struct BaseRequest {
     pub correlation_id: i32,
 }
 
-#[derive(Debug, Encode, Decode)]
+#[derive(Debug, Encode, Decode, Size)]
 pub struct BaseResponse {
     pub size: i32,
     pub correlation_id: i32,
