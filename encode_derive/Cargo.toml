@@ -1,0 +1,12 @@
+[lib]
+proc-macro = true
+
+
+[package]
+name = "encode_derive"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+syn = { version = "2.0.100", features = ["derive", "parsing"] }
+quote = "1.0.40"
