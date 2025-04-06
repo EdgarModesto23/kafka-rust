@@ -81,8 +81,7 @@ impl DescribePartitionsRequest {
             tag_buffer,
         };
 
-        let res_size = response.size_in_bytes() - 3;
-        println!("{response:?}");
+        let res_size = response.size_in_bytes() - 4;
         response.basev1.base.size = res_size as i32;
 
         Ok(response)

@@ -35,7 +35,7 @@ impl Offset for CString {
 
 impl Size for CString {
     fn size_in_bytes(&self) -> usize {
-        self.1 + self.0.len() - 1
+        self.1 + self.0.len()
     }
 }
 
