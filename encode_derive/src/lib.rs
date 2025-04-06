@@ -73,7 +73,7 @@ pub fn derive_decode(input: TokenStream) -> TokenStream {
                 let field_name = &f.ident;
                 let field_type = &f.ty;
                 quote! {
-                    let #field_name = <#field_type as Decode>::decode(&bytes, &mut offset);
+                    let #field_name = <#field_type as Decode>::decode(&bytes, offset);
                 }
             });
 
@@ -83,7 +83,6 @@ pub fn derive_decode(input: TokenStream) -> TokenStream {
             });
 
             quote! {
-                let mut offset = 0;
                 #(#field_decodes)*
                 Self { #(#field_assignments),* }
             }
