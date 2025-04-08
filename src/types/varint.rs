@@ -2,6 +2,7 @@ use crate::*;
 
 use super::{decode_signed_varint, encode_signed_varint};
 
+#[derive(Debug)]
 pub struct Varint(pub i64);
 
 impl Varint {

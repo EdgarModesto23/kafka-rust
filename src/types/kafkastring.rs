@@ -76,7 +76,6 @@ mod tests {
         ];
 
         for (input, expected_encoded) in test_cases {
-            println!("{input:?}");
             let encoded = input.encode();
             let mut offset = 0;
             let decoded = String::decode(&encoded, &mut offset);

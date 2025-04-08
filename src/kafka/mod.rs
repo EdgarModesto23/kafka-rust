@@ -33,6 +33,7 @@ pub struct BaseResponseV1 {
 
 pub mod apiversions;
 pub mod listpartitions;
+pub mod log;
 
 #[cfg(test)]
 mod tests {
@@ -51,8 +52,6 @@ mod tests {
         let mut offset = 0;
 
         let base_decoded = BaseRequestV2::decode(&test_request[..], &mut offset);
-        println!("offset after decode: {offset:?}");
-        println!("{:?}", base_decoded.correlation_id);
 
         assert_eq!(base_decoded.client_id, "kafka-cli")
     }

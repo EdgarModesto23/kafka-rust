@@ -80,3 +80,30 @@ impl Size for i32 {
         std::mem::size_of::<i32>()
     }
 }
+
+impl Encode for i64 {
+    fn encode(&self) -> Vec<u8> {
+        self.to_be_bytes().to_vec()
+    }
+}
+
+impl Decode for i64 {
+    fn decode(bytes: &[u8], offset: &mut usize) -> Self {
+        let mut array = [0u8; 8];
+        array.copy_from_slice(&bytes[*offset..*offset + 8]);
+        *offset += 8;
+        i64::from_be_bytes(array)
+    }
+}
+
+impl Offset for i64 {
+    fn size(&self) -> usize {
+        std::mem::size_of::<i64>()
+    }
+}
+
+impl Size for i64 {
+    fn size_in_bytes(&self) -> usize {
+        std::mem::size_of::<i64>()
+    }
+}

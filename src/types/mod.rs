@@ -2,6 +2,7 @@ pub mod array;
 pub mod cstring;
 pub mod integers;
 pub mod kafkastring;
+pub mod record;
 pub mod uuid;
 pub mod uvarint;
 pub mod varint;
