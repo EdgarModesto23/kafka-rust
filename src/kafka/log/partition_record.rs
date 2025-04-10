@@ -1,4 +1,4 @@
-use crate::{Decode, Encode, Size};
+use crate::{types::array::CVec, Decode, Encode, Size};
 use encode_derive::{Decode, Size};
 
 use crate::types::uuid::UUID;
@@ -7,13 +7,13 @@ use crate::types::uuid::UUID;
 pub struct PartitionRecord {
     pub id: i32,
     pub topic_id: UUID,
-    pub replicas: Vec<i32>,
-    pub sync_replicas: Vec<i32>,
-    pub removing_replicas: Vec<i32>,
-    pub adding_replicas: Vec<i32>,
+    pub replicas: CVec<i32>,
+    pub sync_replicas: CVec<i32>,
+    pub removing_replicas: CVec<i32>,
+    pub adding_replicas: CVec<i32>,
     pub leader: i32,
     pub leader_epoch: i32,
     pub partition_epoch: i32,
-    pub directories: Vec<UUID>,
+    pub directories: CVec<UUID>,
     pub tagged_fields: u8,
 }

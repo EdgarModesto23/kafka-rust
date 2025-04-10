@@ -2,8 +2,79 @@ use std::{fmt::Debug, u8};
 
 use crate::*;
 
-use super::{unsigned_varint_bytes_wide, uvarint::UVarint};
+use super::{
+    signed_varint_bytes_wide, unsigned_varint_bytes_wide, uvarint::UVarint, varint::Varint,
+};
 
+#[derive(Debug)]
+pub struct CSignedVec<T>
+where
+    T: Encode + Decode + Debug,
+{
+    pub data: Vec<T>,
+}
+
+impl<T> Encode for CSignedVec<T>
+where
+    T: Encode + Debug + Decode,
+{
+    fn encode(&self) -> Vec<u8> {
+        let mut v = Vec::new();
+
+        if self.data.is_empty() {
+            return vec![0];
+        }
+
+        let size = Varint::new(self.data.len() as i64);
+
+        v.extend_from_slice(&size.encode());
+
+        for value in &self.data {
+            v.extend_from_slice(&value.encode());
+        }
+        v
+    }
+}
+
+impl<T> Decode for CSignedVec<T>
+where
+    T: Decode + Encode + Debug,
+{
+    fn decode(bytes: &[u8], offset: &mut usize) -> Self {
+        let size = Varint::decode(bytes, offset);
+
+        if size.0 == 0 || size.0 == -1 {
+            return Self { data: vec![] };
+        }
+
+        let data = (0..size.0).map(|_| T::decode(bytes, offset)).collect();
+
+        Self { data }
+    }
+}
+
+impl<T> Offset for CSignedVec<T>
+where
+    T: Decode + Encode + Debug,
+{
+    fn size(&self) -> usize {
+        self.data.len()
+    }
+}
+
+impl<T> Size for CSignedVec<T>
+where
+    T: Decode + Encode + Debug + Size,
+{
+    fn size_in_bytes(&self) -> usize {
+        let size_prefix = signed_varint_bytes_wide(self.data.len());
+        let elements_size: usize = self.data.iter().map(|e| e.size_in_bytes()).sum();
+
+        size_prefix + elements_size
+    }
+}
+
+#[derive(Debug)]
 pub struct CVec<T>
 where
     T: Encode + Decode + Debug,
@@ -99,16 +170,21 @@ where
 
 impl<T> Decode for Vec<T>
 where
-    T: Decode,
+    T: Decode + Debug,
 {
     fn decode(bytes: &[u8], offset: &mut usize) -> Self {
         let size = i32::decode(bytes, offset);
+        println!("DEBUG: offset value for vec: {offset:?}\nDEBUG: value decoded: {size:?}");
 
         if size == -1 || size == 0 {
+            *offset += 1;
+            println!("DEBUG: offset value for vec: {offset:?}\nDEBUG: value decoded: {size:?}");
             return vec![];
         }
 
-        (0..size).map(|_| T::decode(bytes, offset)).collect()
+        let r = (0..size).map(|_| T::decode(bytes, offset)).collect();
+        println!("DEBUG: offset value for vec after decoding it's elements: {offset:?}\nDEBUG: value decoded: {r:?}");
+        r
     }
 }
 
@@ -217,7 +293,7 @@ mod tests {
 
     #[test]
     fn test_vec_decode() {
-        let bytes: &[u8] = &[0, 0, 0, 3, 1, 2, 3];
+        let bytes: &[u8] = &[0, 0, 0, 3 as u8, 1 as u8, 2 as u8, 3 as u8];
         let mut offset = 0;
 
         let decoded: Vec<u8> = Vec::decode(bytes, &mut offset);
@@ -238,7 +314,7 @@ mod tests {
         let expected: Vec<u8> = Vec::new();
 
         assert_eq!(decoded, expected);
-        assert_eq!(offset, bytes.len());
+        assert_eq!(offset, bytes.len() + 1);
     }
 
     #[test]

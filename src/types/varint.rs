@@ -11,6 +11,9 @@ impl Varint {
 
         v.len()
     }
+    pub fn new(value: i64) -> Self {
+        Self(value + 1)
+    }
 }
 
 impl Encode for Varint {
@@ -23,6 +26,7 @@ impl Decode for Varint {
     fn decode(bytes: &[u8], offset: &mut usize) -> Self {
         let (value, _) = decode_signed_varint(bytes, offset);
 
+        println!("DEBUG: offset value for Varint: {offset:?}\nDEBUG: value decoded: {value:?}");
         Varint(value)
     }
 }
