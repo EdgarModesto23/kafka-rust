@@ -29,7 +29,7 @@ impl Encode for UUID {
 
 impl Size for UUID {
     fn size_in_bytes(&self) -> usize {
-        15
+        16
     }
 }
 
