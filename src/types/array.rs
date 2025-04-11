@@ -74,7 +74,16 @@ where
     }
 }
 
-#[derive(Debug)]
+impl<T> From<Vec<T>> for CVec<T>
+where
+    T: Encode + Decode + Debug,
+{
+    fn from(vec: Vec<T>) -> Self {
+        CVec { data: vec }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct CVec<T>
 where
     T: Encode + Decode + Debug,

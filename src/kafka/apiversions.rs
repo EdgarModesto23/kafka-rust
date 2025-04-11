@@ -1,6 +1,6 @@
 use std::{fs::File, io::BufReader, path::Path};
 
-use crate::{Decode, Encode, Size};
+use crate::{types::array::CVec, Decode, Encode, Size};
 use anyhow::Error;
 use encode_derive::{Decode, Size};
 use serde::Deserialize as Serde_Deserialize;
@@ -24,16 +24,18 @@ pub struct SupportedVersionsKey {
 pub struct ApiVersionsResponse {
     pub base: BaseResponse,
     pub error_code: i16,
-    pub api_keys: Vec<SupportedVersionsKey>,
+    pub api_keys: CVec<SupportedVersionsKey>,
     pub throttle_time_ms: i32,
     pub tagged_fields: u8,
 }
 
-fn get_supported_versions<P: AsRef<Path>>(path: P) -> Result<Vec<SupportedVersionsKey>, Error> {
+fn get_supported_versions<P: AsRef<Path>>(path: P) -> Result<CVec<SupportedVersionsKey>, Error> {
     let f = File::open(path)?;
     let reader = BufReader::new(f);
 
-    let data: Vec<SupportedVersionsKey> = serde_json::from_reader(reader)?;
+    let data_vec: Vec<SupportedVersionsKey> = serde_json::from_reader(reader)?;
+
+    let data = CVec { data: data_vec };
 
     Ok(data)
 }

@@ -2,7 +2,7 @@ use crate::*;
 
 use super::uvarint::UVarint;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct CString(pub String, pub usize);
 
 impl Decode for CString {

@@ -1,14 +1,124 @@
+#[allow(non_camel_case_types, non_upper_case_globals, unreachable_patterns)]
+use std::collections::{HashMap, HashSet};
+
+use anyhow::Error;
 use encode_derive::{Decode, Size};
 use partition_record::PartitionRecord;
+use tokio::fs::File;
+use tokio::io::AsyncReadExt;
 use topic_log::TopicRecord;
 
 use crate::{
     types::{
-        array::CSignedVec, cstring::CString, record::GenericRecord, uvarint::UVarint,
+        array::{CSignedVec, CVec},
+        cstring::CString,
+        record::GenericRecord,
+        uvarint::UVarint,
         varint::Varint,
     },
     Decode, Encode, Size,
 };
+
+use super::listpartitions::TopicResponse;
+
+pub mod partition_record;
+pub mod topic_log;
+
+static CLUSTER_METADATA: &str =
+    "/tmp/kraft-combined-logs/__cluster_metadata-0/00000000000000000000.log";
+
+pub async fn get_topics() -> Result<HashMap<String, TopicResponse>, Error> {
+    let records = get_records_from_disk().await?;
+
+    let mut topics_w_partitions: HashMap<String, Vec<PartitionRecord>> = HashMap::new();
+
+    let filtered_topics: HashSet<String> = records
+        .iter()
+        .flat_map(|batch| &batch.records)
+        .filter_map(|record| {
+            if let RecordValue::Topic(topic) = &record.value.r_record {
+                Some(topic.id.to_string())
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    records
+        .iter()
+        .flat_map(|batch| &batch.records)
+        .filter_map(|record| {
+            if let RecordValue::Partition(partition) = &record.value.r_record {
+                Some(partition)
+            } else {
+                None
+            }
+        })
+        .filter(|partition| filtered_topics.contains(&partition.topic_id.to_string()))
+        .for_each(|partition| {
+            topics_w_partitions
+                .entry(partition.topic_id.to_string())
+                .or_insert_with(Vec::new)
+                .push(partition.clone());
+        });
+
+    let topic_lookup: HashMap<String, &TopicRecord> = records
+        .iter()
+        .flat_map(|batch| &batch.records)
+        .filter_map(|record| {
+            if let RecordValue::Topic(topic) = &record.value.r_record {
+                Some((topic.id.to_string(), topic))
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    let mut topic_map: HashMap<String, TopicResponse> = HashMap::new();
+
+    for (topic_id, partitions) in topics_w_partitions {
+        if let Some(topic) = topic_lookup.get(&topic_id) {
+            let name = topic.name.0.to_string();
+            topic_map.insert(
+                name.clone(),
+                TopicResponse {
+                    error_code: 0,
+                    name: topic.name.clone(),
+                    id: topic.id.clone(),
+                    is_internal: 0,
+                    partitions_array: CVec { data: partitions },
+                    authorized_ops: 0,
+                    tag_buffer: topic.tagged_fields,
+                },
+            );
+        }
+    }
+
+    Ok(topic_map)
+}
+
+pub async fn get_records_from_disk() -> Result<Vec<RecordBatch>, Error> {
+    let mut file = File::open(CLUSTER_METADATA).await?;
+
+    let metadata = file.metadata().await?;
+
+    let mut buf = Vec::with_capacity(metadata.len().try_into()?);
+
+    file.read_to_end(&mut buf).await?;
+
+    println!("from file: {buf:?}");
+
+    let mut batches: Vec<RecordBatch> = Vec::new();
+
+    let mut offset = 0;
+
+    while offset < buf.len() {
+        let batch = RecordBatch::decode(&buf[..], &mut offset);
+        batches.push(batch);
+    }
+
+    Ok(batches)
+}
 
 #[derive(Debug, Encode, Decode, Size)]
 pub struct FeatureLevelRecord {
@@ -27,9 +137,6 @@ pub enum RecordValue {
     Partition(PartitionRecord),
     Unknown(UnknownRecord),
 }
-
-pub mod partition_record;
-pub mod topic_log;
 
 #[derive(Debug, Encode, Decode, Size)]
 pub struct LogFile {
@@ -83,7 +190,24 @@ mod tests {
             0x18, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
             0xff, 0x00, 0x00, 0x00, 0x01, 0x3a, 0x00, 0x00, 0x00, 0x01, 0x2e, 0x01, 0x0c, 0x00,
             0x11, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x2e, 0x76, 0x65, 0x72, 0x73,
-            0x69, 0x6f, 0x6e, 0x00, 0x14, 0x00, 0x00,
+            0x69, 0x6f, 0x6e, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x01, 0x00, 0x00, 0x00, 0xe4, 0x00, 0x00, 0x00, 0x01, 0x02, 0x24, 0xdb, 0x12, 0xdd,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x01, 0x91, 0xe0, 0x5b, 0x2d, 0x15,
+            0x00, 0x00, 0x01, 0x91, 0xe0, 0x5b, 0x2d, 0x15, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x03, 0x3c, 0x00,
+            0x00, 0x00, 0x01, 0x30, 0x01, 0x02, 0x00, 0x04, 0x73, 0x61, 0x7a, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x40, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x91, 0x00,
+            0x00, 0x90, 0x01, 0x00, 0x00, 0x02, 0x01, 0x82, 0x01, 0x01, 0x03, 0x01, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x80, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x91, 0x02, 0x00, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00, 0x00, 0x01,
+            0x01, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x02, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x01, 0x00, 0x00, 0x90, 0x01, 0x00, 0x00, 0x04, 0x01, 0x82, 0x01, 0x01,
+            0x03, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00,
+            0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x91, 0x02, 0x00, 0x00, 0x00, 0x01, 0x02,
+            0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x02, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x80,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00,
         ];
 
         let mut offset = 0;
@@ -193,4 +317,13 @@ mod tests {
             _ => panic!("Expected record to be Topic"),
         }
     }
+
+    //#[tokio::test]
+    //async fn test_decode_from_file() {
+    //    if let Ok(batch_vec) = get_records_from_disk().await {
+    //        assert_eq!(batch_vec.len(), 2);
+    //    } else {
+    //        panic!("Could not parse records from disk")
+    //    }
+    //}
 }

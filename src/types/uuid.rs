@@ -1,6 +1,8 @@
 use crate::*;
 
-#[derive(Debug)]
+use uuid::Uuid;
+
+#[derive(Debug, Clone)]
 pub struct UUID(pub [u8; 16]);
 
 impl Decode for UUID {
@@ -12,6 +14,12 @@ impl Decode for UUID {
         *offset += 16;
         println!("DEBUG Offset after parsing uuid {offset:?}");
         uuid
+    }
+}
+
+impl UUID {
+    pub fn to_string(&self) -> String {
+        Uuid::from_bytes(self.0).to_string()
     }
 }
 

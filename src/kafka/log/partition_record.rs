@@ -3,7 +3,7 @@ use encode_derive::{Decode, Size};
 
 use crate::types::uuid::UUID;
 
-#[derive(Debug, Encode, Decode, Size)]
+#[derive(Debug, Encode, Decode, Size, Clone)]
 pub struct PartitionRecord {
     pub id: i32,
     pub topic_id: UUID,
