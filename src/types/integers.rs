@@ -12,7 +12,6 @@ impl Decode for u8 {
         array.copy_from_slice(&bytes[*offset..*offset + 1]);
         *offset += 1;
         let r = u8::from_be_bytes(array);
-        println!("DEBUG: offset value for u8: {offset:?}\nDEBUG: value decoded: {r:?}");
         r
     }
 }
@@ -41,7 +40,6 @@ impl Decode for i16 {
         array.copy_from_slice(&bytes[*offset..*offset + 2]);
         *offset += 2;
         let r = i16::from_be_bytes(array);
-        println!("DEBUG: offset value for i16: {offset:?}\nDEBUG: value decoded: {r:?}");
         r
     }
 }
@@ -70,7 +68,6 @@ impl Decode for i32 {
         array.copy_from_slice(&bytes[*offset..*offset + 4]);
         *offset += 4;
         let r = i32::from_be_bytes(array);
-        println!("DEBUG: offset value for i32: {offset:?}\nDEBUG: value decoded: {r:?}");
         r
     }
 }
@@ -99,7 +96,6 @@ impl Decode for i64 {
         array.copy_from_slice(&bytes[*offset..*offset + 8]);
         *offset += 8;
         let r = i64::from_be_bytes(array);
-        println!("DEBUG: offset value for i64: {offset:?}\nDEBUG: value decoded: {r:?}");
         r
     }
 }

@@ -183,16 +183,13 @@ where
 {
     fn decode(bytes: &[u8], offset: &mut usize) -> Self {
         let size = i32::decode(bytes, offset);
-        println!("DEBUG: offset value for vec: {offset:?}\nDEBUG: value decoded: {size:?}");
 
         if size == -1 || size == 0 {
             *offset += 1;
-            println!("DEBUG: offset value for vec: {offset:?}\nDEBUG: value decoded: {size:?}");
             return vec![];
         }
 
         let r = (0..size).map(|_| T::decode(bytes, offset)).collect();
-        println!("DEBUG: offset value for vec after decoding it's elements: {offset:?}\nDEBUG: value decoded: {r:?}");
         r
     }
 }
