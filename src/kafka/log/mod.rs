@@ -19,7 +19,7 @@ use crate::{
     Decode, Encode, Size,
 };
 
-use super::listpartitions::TopicResponse;
+use super::listpartitions::{PartitionResponse, TopicResponse};
 
 pub mod partition_record;
 pub mod topic_log;
@@ -30,7 +30,7 @@ static CLUSTER_METADATA: &str =
 pub async fn get_topics() -> Result<HashMap<String, TopicResponse>, Error> {
     let records = get_records_from_disk().await?;
 
-    let mut topics_w_partitions: HashMap<String, Vec<PartitionRecord>> = HashMap::new();
+    let mut topics_w_partitions: HashMap<String, Vec<PartitionResponse>> = HashMap::new();
 
     let filtered_topics: HashSet<String> = records
         .iter()
@@ -56,10 +56,24 @@ pub async fn get_topics() -> Result<HashMap<String, TopicResponse>, Error> {
         })
         .filter(|partition| filtered_topics.contains(&partition.topic_id.to_string()))
         .for_each(|partition| {
-            topics_w_partitions
+            let entry = topics_w_partitions
                 .entry(partition.topic_id.to_string())
-                .or_insert_with(Vec::new)
-                .push(partition.clone());
+                .or_insert_with(Vec::new);
+
+            let idx = entry.len();
+
+            entry.push(PartitionResponse {
+                error_code: 0,
+                partition_idx: idx as i32,
+                leader_id: partition.leader,
+                leader_epoch: partition.leader_epoch,
+                replica_nodes: partition.replicas.clone(),
+                in_sync_replicas: partition.sync_replicas.clone(),
+                eligible_leader_replicas: CVec { data: vec![] },
+                last_known_elr: CVec { data: vec![] },
+                offline_replica: CVec { data: vec![] },
+                tag_buffer: 0,
+            });
         });
 
     let topic_lookup: HashMap<String, &TopicRecord> = records

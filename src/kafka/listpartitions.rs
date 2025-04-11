@@ -26,12 +26,26 @@ pub struct DescribePartitionsRequest {
 }
 
 #[derive(Debug, Encode, Decode, Size)]
+pub struct PartitionResponse {
+    pub error_code: i16,
+    pub partition_idx: i32,
+    pub leader_id: i32,
+    pub leader_epoch: i32,
+    pub replica_nodes: CVec<i32>,
+    pub in_sync_replicas: CVec<i32>,
+    pub eligible_leader_replicas: CVec<i32>,
+    pub last_known_elr: CVec<i32>,
+    pub offline_replica: CVec<i32>,
+    pub tag_buffer: u8,
+}
+
+#[derive(Debug, Encode, Decode, Size)]
 pub struct TopicResponse {
     pub error_code: i16,
     pub name: CString,
     pub id: UUID,
     pub is_internal: u8,
-    pub partitions_array: CVec<PartitionRecord>,
+    pub partitions_array: CVec<PartitionResponse>,
     pub authorized_ops: i32,
     pub tag_buffer: u8,
 }
