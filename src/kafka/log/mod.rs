@@ -87,7 +87,7 @@ pub async fn get_topics() -> Result<HashMap<String, TopicResponse>, Error> {
                     id: topic.id.clone(),
                     is_internal: 0,
                     partitions_array: CVec { data: partitions },
-                    authorized_ops: 0,
+                    authorized_ops: 0x00000df8,
                     tag_buffer: topic.tagged_fields,
                 },
             );
