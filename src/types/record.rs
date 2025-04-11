@@ -19,20 +19,15 @@ impl Encode for GenericRecord {
 
 impl Decode for GenericRecord {
     fn decode(bytes: &[u8], offset: &mut usize) -> Self {
-        println!("DEBUG Offset before parsing record {offset:?}");
         let t = u8::decode(bytes, offset);
         let _v = u8::decode(bytes, offset);
 
-        println!("DEBUG Offset before parsing record {offset:?}");
         let r_record = match t {
             12 => RecordValue::FeatureLevel(FeatureLevelRecord::decode(bytes, offset)),
             2 => RecordValue::Topic(TopicRecord::decode(bytes, offset)),
             3 => RecordValue::Partition(PartitionRecord::decode(bytes, offset)),
             _ => RecordValue::Unknown(UnknownRecord {}),
         };
-
-        println!("{r_record:?}");
-        println!("DEBUG Offset after parsing record {offset:?}");
 
         Self { r_record }
     }
