@@ -65,7 +65,6 @@ pub struct DescribePartitionsResponse {
 
 impl DescribePartitionsRequest {
     pub async fn handle_request(&self) -> Result<DescribePartitionsResponse, Error> {
-        println!("Handle request");
         let base = BaseResponse {
             size: 0,
             correlation_id: self.basev2.correlation_id,
@@ -96,10 +95,6 @@ impl DescribePartitionsRequest {
             next_cursor,
             tag_buffer,
         };
-        println!("{response:?}");
-        println!("{response:?}");
-        println!("{response:?}");
-        println!("{response:?}");
         println!("{response:?}");
 
         let res_size = response.size_in_bytes() - 4;
