@@ -2,7 +2,8 @@
   {
     "key": 1,
     "min": 0,
-    "max": 16
+    "max": 16,
+    "tagged_fields": 0
   },
   {
     "key": 18,
