@@ -1,9 +1,5 @@
 use crate::{
-    types::{
-        array::{CSignedVec, CVec},
-        cstring::CString,
-        uuid::UUID,
-    },
+    types::{array::CVec, cstring::CString, uuid::UUID},
     Decode, Encode, Size,
 };
 use anyhow::Error;
