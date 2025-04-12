@@ -120,8 +120,6 @@ pub async fn get_records_from_disk() -> Result<Vec<RecordBatch>, Error> {
 
     file.read_to_end(&mut buf).await?;
 
-    println!("from file: {buf:?}");
-
     let mut batches: Vec<RecordBatch> = Vec::new();
 
     let mut offset = 0;

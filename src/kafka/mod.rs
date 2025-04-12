@@ -25,6 +25,15 @@ pub struct BaseResponse {
     pub correlation_id: i32,
 }
 
+impl BaseResponse {
+    pub fn new_base(corr_id: i32) -> Self {
+        Self {
+            size: 0,
+            correlation_id: corr_id,
+        }
+    }
+}
+
 #[derive(Debug, Encode, Decode, Size)]
 pub struct BaseResponseV1 {
     pub base: BaseResponse,

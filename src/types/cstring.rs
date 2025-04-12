@@ -7,7 +7,12 @@ pub struct CString(pub String, pub usize);
 
 impl Decode for CString {
     fn decode(bytes: &[u8], offset: &mut usize) -> Self {
-        let len = UVarint::decode(bytes, offset);
+        let mut len = UVarint::decode(bytes, offset);
+        if len.0 < 1 {
+            len.0 = 1
+        }
+        println!("offset: {offset:?}");
+        println!("len: {len:?}");
         let value =
             String::from_utf8(bytes[*offset..*offset + (len.0 - 1) as usize].to_vec()).unwrap();
         *offset += value.len();
