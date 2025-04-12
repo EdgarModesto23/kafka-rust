@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Error};
 use encode_derive::Encode;
 use kafka::apiversions::ApiVersionsRequest;
+use kafka::fetch::FetchRequest;
 use kafka::listpartitions::DescribePartitionsRequest;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
@@ -54,12 +55,14 @@ pub trait Size {
 pub enum Handler {
     ApiVersions(ApiVersionsRequest),
     DescribeTopicPartitions(DescribePartitionsRequest),
+    Fetch(FetchRequest),
 }
 
 pub fn get_handler(key: i16, request: &[u8]) -> Option<Handler> {
     let mut offset = 0;
 
     match key {
+        1 => Some(Handler::Fetch(FetchRequest::decode(request, &mut offset))),
         18 => Some(Handler::ApiVersions(ApiVersionsRequest::decode(
             request,
             &mut offset,
@@ -82,6 +85,14 @@ pub async fn handle_request(handler: Handler, socket: &mut TcpStream) {
             };
         }
         Handler::DescribeTopicPartitions(request) => {
+            if let Ok(value) = request.handle_request().await {
+                respond(socket, &value.encode()[..]).await
+            } else {
+                let err = ErrorResponse { code: -1 };
+                respond(socket, &err.encode()[..]).await
+            }
+        }
+        Handler::Fetch(request) => {
             if let Ok(value) = request.handle_request().await {
                 respond(socket, &value.encode()[..]).await
             } else {

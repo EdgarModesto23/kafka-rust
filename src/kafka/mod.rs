@@ -32,6 +32,7 @@ pub struct BaseResponseV1 {
 }
 
 pub mod apiversions;
+pub mod fetch;
 pub mod listpartitions;
 pub mod log;
 

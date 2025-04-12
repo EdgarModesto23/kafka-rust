@@ -1,5 +1,33 @@
 use crate::*;
 
+impl Encode for i8 {
+    fn encode(&self) -> Vec<u8> {
+        self.to_be_bytes().to_vec()
+    }
+}
+
+impl Decode for i8 {
+    fn decode(bytes: &[u8], offset: &mut usize) -> Self {
+        let mut array = [0u8; 1];
+        array.copy_from_slice(&bytes[*offset..*offset + 1]);
+        *offset += 1;
+        let r = i8::from_be_bytes(array);
+        r
+    }
+}
+
+impl Offset for i8 {
+    fn size(&self) -> usize {
+        std::mem::size_of::<i8>()
+    }
+}
+
+impl Size for i8 {
+    fn size_in_bytes(&self) -> usize {
+        std::mem::size_of::<i8>()
+    }
+}
+
 impl Encode for u8 {
     fn encode(&self) -> Vec<u8> {
         self.to_be_bytes().to_vec()

@@ -5,10 +5,7 @@ use crate::{
 use anyhow::Error;
 use encode_derive::{Decode, Size};
 
-use super::{
-    log::{get_topics, partition_record::PartitionRecord},
-    BaseRequestV2, BaseResponse, BaseResponseV1,
-};
+use super::{log::get_topics, BaseRequestV2, BaseResponse, BaseResponseV1};
 
 #[derive(Debug, Encode, Decode, Size)]
 pub struct TopicsRequest {
@@ -105,7 +102,6 @@ impl DescribePartitionsRequest {
             next_cursor,
             tag_buffer,
         };
-        println!("{response:?}");
 
         let res_size = response.size_in_bytes() - 4;
         response.basev1.base.size = res_size as i32;
