@@ -2,7 +2,7 @@ use crate::*;
 
 use uuid::Uuid;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct UUID(pub [u8; 16]);
 
 impl Decode for UUID {

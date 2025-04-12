@@ -11,8 +11,6 @@ impl Decode for CString {
         if len.0 < 1 {
             len.0 = 1
         }
-        println!("offset: {offset:?}");
-        println!("len: {len:?}");
         let value =
             String::from_utf8(bytes[*offset..*offset + (len.0 - 1) as usize].to_vec()).unwrap();
         *offset += value.len();

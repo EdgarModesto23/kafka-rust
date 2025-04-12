@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::{
     types::{array::CVec, cstring::CString, uuid::UUID},
     Decode, Encode, Size,
@@ -5,7 +7,7 @@ use crate::{
 use anyhow::Error;
 use encode_derive::{Decode, Size};
 
-use super::{listpartitions::TopicsRequest, BaseRequestV2, BaseResponse, BaseResponseV1};
+use super::{log::get_topics, BaseRequestV2, BaseResponse, BaseResponseV1};
 
 #[derive(Debug, Encode, Decode, Size)]
 pub struct FetchPartitionsRequest {
@@ -70,6 +72,15 @@ impl FetchTopicResponse {
             tagged_field: 0,
         }
     }
+    pub fn known_topic(topic_id: UUID) -> Self {
+        Self {
+            topic_id,
+            partitions: CVec {
+                data: vec![FetchPartitionsResponse::known_topic()],
+            },
+            tagged_field: 0,
+        }
+    }
 }
 
 #[derive(Debug, Encode, Decode, Size)]
@@ -99,6 +110,19 @@ impl FetchPartitionsResponse {
             tagged_field: 0,
         }
     }
+    pub fn known_topic() -> Self {
+        Self {
+            partition_idx: 0,
+            error_code: 0,
+            high_watermark: 0,
+            last_stable_offset: 0,
+            log_start_offset: 0,
+            aborted_transactions: CVec { data: vec![] },
+            preferred_read_replica: 0,
+            records: 0,
+            tagged_field: 0,
+        }
+    }
 }
 
 #[derive(Debug, Encode, Decode, Size)]
@@ -112,32 +136,45 @@ pub struct FetchResponse {
 }
 
 impl FetchResponse {
-    pub fn get_topics(correlation_id: i32, session_id: i32, topics: &Vec<TopicFetch>) -> Self {
+    pub async fn get_topics(
+        correlation_id: i32,
+        session_id: i32,
+        topics: &Vec<TopicFetch>,
+    ) -> Result<Self, Error> {
         let base = BaseResponse::new_base(correlation_id);
         let tag_buffer = 0;
         let basev1 = BaseResponseV1 { base, tag_buffer };
         if topics.is_empty() {
-            FetchResponse {
+            Ok(FetchResponse {
                 basev1,
                 throttle_time: 0,
                 error_code: 0,
                 session_id,
                 responses: CVec { data: vec![] },
                 tagged_field: tag_buffer,
-            }
+            })
         } else {
             let mut ts: Vec<FetchTopicResponse> = vec![];
+            let topics_from_disk = get_topics().await?;
+            let mut topics_uuid = HashSet::new();
+            topics_from_disk.into_iter().for_each(|(_, value)| {
+                topics_uuid.insert(value.id);
+            });
             for topic in topics {
-                ts.push(FetchTopicResponse::unknown_topic(topic.topic_id.clone()));
+                if let Some(_) = topics_uuid.get(&topic.topic_id) {
+                    ts.push(FetchTopicResponse::known_topic(topic.topic_id.clone()));
+                } else {
+                    ts.push(FetchTopicResponse::unknown_topic(topic.topic_id.clone()));
+                }
             }
-            FetchResponse {
+            Ok(FetchResponse {
                 basev1,
                 throttle_time: 0,
                 error_code: 0,
                 session_id,
                 responses: CVec { data: ts },
                 tagged_field: tag_buffer,
-            }
+            })
         }
     }
 }
@@ -148,7 +185,8 @@ impl FetchRequest {
             self.basev2.correlation_id,
             self.session_id,
             &self.topics.data,
-        );
+        )
+        .await?;
 
         let res_size = response.size_in_bytes() - 4;
 
