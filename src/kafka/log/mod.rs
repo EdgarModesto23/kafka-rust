@@ -165,62 +165,11 @@ pub async fn read_all_partition_metadata() -> Result<Vec<(String, Vec<u8>)>, Err
     Ok(results)
 }
 
-fn base64_simple_decode(input: &str) -> Option<Vec<u8>> {
-    let mut output = Vec::with_capacity((input.len() * 3) / 4);
-    let mut buffer = 0u32;
-    let mut bits_collected = 0;
-
-    for byte in input.bytes() {
-        let val = match byte {
-            b'A'..=b'Z' => (byte - b'A') as u32,
-            b'a'..=b'z' => (byte - b'a' + 26) as u32,
-            b'0'..=b'9' => (byte - b'0' + 52) as u32,
-            b'+' => 62,
-            b'/' => 63,
-            b'=' => break, // ignore padding
-            _ => return None,
-        };
-
-        buffer = (buffer << 6) | val;
-        bits_collected += 6;
-
-        if bits_collected >= 8 {
-            bits_collected -= 8;
-            output.push((buffer >> bits_collected) as u8 & 0xFF);
-        }
-    }
-
-    Some(output)
-}
-
-pub fn extract_uuid_from_partition_metadata(bytes: &[u8]) -> Option<[u8; 16]> {
-    let content = String::from_utf8_lossy(bytes);
-
-    for line in content.lines() {
-        if let Some(encoded) = line.strip_prefix("topic_id: ") {
-            let decoded = base64_simple_decode(encoded.trim())?;
-            if decoded.len() == 16 {
-                let mut uuid = [0u8; 16];
-                uuid.copy_from_slice(&decoded);
-                return Some(uuid);
-            }
-        }
-    }
-
-    None
-}
-
 pub async fn read_topic_metadata() -> Result<HashMap<String, UUID>, Error> {
     let metadata = read_all_partition_metadata().await?;
     for (dir_name, data) in metadata {
         println!("Read {:?} bytes from {}/partition.metadata", data, dir_name);
         // You can deserialize or parse `data` if needed
-        if let Some(uuid_bytes) = extract_uuid_from_partition_metadata(&data) {
-            println!("UUID bytes: {:?}", uuid_bytes);
-        } else {
-            println!("UUID not found or invalid.");
-        }
-        println!("UUID:")
     }
 
     Ok(HashMap::new())

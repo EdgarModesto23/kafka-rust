@@ -175,6 +175,7 @@ impl FetchResponse {
                 topics_uuid.insert(value.id.clone().to_string());
             });
             for topic in topics {
+                println!("{:?}", topic.topic_id);
                 if let Some(_) = topics_uuid.get(&topic.topic_id.to_string()) {
                     let topic_name = match topics_from_disk.iter().find(|(k, v)| v.name.0 == **k) {
                         Some(value) => value.0,
@@ -209,8 +210,6 @@ impl FetchResponse {
 
 impl FetchRequest {
     pub async fn handle_request(&self) -> Result<FetchResponse, Error> {
-        println!("{:?}", self);
-
         let mut response = FetchResponse::get_topics(
             self.basev2.correlation_id,
             self.session_id,
