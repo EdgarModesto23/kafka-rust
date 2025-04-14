@@ -1,5 +1,5 @@
+use anyhow::Error;
 use anyhow::Result;
-use anyhow::{Context, Error};
 use crc32c::crc32c;
 use encode_derive::{Decode, Size};
 use partition_record::PartitionRecord;
@@ -137,7 +137,7 @@ pub struct TopicMetadata {
     pub uuid: UUID,
 }
 
-pub async fn read_all_partition_metadata_as_string() -> Result<Vec<(String, String)>> {
+pub async fn read_all_partition_metadata() -> Result<Vec<(String, Vec<u8>)>, Error> {
     let mut results = Vec::new();
 
     let base_dir = PathBuf::from("/tmp/kraft-combined-logs");
@@ -154,12 +154,9 @@ pub async fn read_all_partition_metadata_as_string() -> Result<Vec<(String, Stri
                 let mut buffer = Vec::new();
                 file.read_to_end(&mut buffer).await?;
 
-                let content = String::from_utf8(buffer).with_context(|| {
-                    format!("Failed to parse UTF-8 from {}", metadata_path.display())
-                })?;
-
+                // Extract name of the directory (like foo-0, paz-0, etc.)
                 if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                    results.push((name.to_string(), content));
+                    results.push((name.to_string(), buffer));
                 }
             }
         }
@@ -169,9 +166,9 @@ pub async fn read_all_partition_metadata_as_string() -> Result<Vec<(String, Stri
 }
 
 pub async fn read_topic_metadata() -> Result<HashMap<String, UUID>, Error> {
-    let metadata = read_all_partition_metadata_as_string().await?;
+    let metadata = read_all_partition_metadata().await?;
     for (dir_name, data) in metadata {
-        println!("Read {} bytes from {}/partition.metadata", data, dir_name);
+        println!("Read {:?} bytes from {}/partition.metadata", data, dir_name);
         // You can deserialize or parse `data` if needed
     }
 
