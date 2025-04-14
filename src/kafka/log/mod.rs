@@ -1,11 +1,12 @@
-#[allow(non_camel_case_types, non_upper_case_globals, unreachable_patterns)]
-use std::collections::{HashMap, HashSet};
-use std::path::Path;
-
 use anyhow::Error;
+use anyhow::Result;
 use crc32c::crc32c;
 use encode_derive::{Decode, Size};
 use partition_record::PartitionRecord;
+#[allow(non_camel_case_types, non_upper_case_globals, unreachable_patterns)]
+use std::collections::{HashMap, HashSet};
+use std::path::PathBuf;
+use tokio::fs;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 use topic_log::TopicRecord;
@@ -16,6 +17,7 @@ use crate::{
         bytes::ByteBuf,
         cstring::{CSignedString, CString},
         record::GenericRecord,
+        uuid::UUID,
         uvarint::UVarint,
         varint::Varint,
     },
@@ -128,6 +130,53 @@ fn calculate_crc(batch: &TopicRecordBatch) -> u32 {
 
     let crc = crc32c(&data);
     crc
+}
+
+pub struct TopicMetadata {
+    pub name: CString,
+    pub uuid: UUID,
+}
+
+pub async fn read_all_partition_metadata() -> Result<Vec<(String, Vec<u8>)>, Error> {
+    let mut results = Vec::new();
+
+    let base_dir = PathBuf::from("/tmp/kraft-combined-logs");
+    let mut entries = fs::read_dir(&base_dir).await?;
+
+    while let Some(entry) = entries.next_entry().await? {
+        let path = entry.path();
+
+        if path.is_dir() {
+            let metadata_path = path.join("partition.metadata");
+
+            if metadata_path.exists() {
+                let mut file = fs::File::open(&metadata_path).await?;
+                let mut buffer = Vec::new();
+                file.read_to_end(&mut buffer).await?;
+
+                // Extract name of the directory (like foo-0, paz-0, etc.)
+                if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                    results.push((name.to_string(), buffer));
+                }
+            }
+        }
+    }
+
+    Ok(results)
+}
+
+pub async fn read_topic_metadata() -> Result<HashMap<String, UUID>, Error> {
+    let metadata = read_all_partition_metadata().await?;
+    for (dir_name, data) in metadata {
+        println!(
+            "Read {} bytes from {}/partition.metadata",
+            data.len(),
+            dir_name
+        );
+        // You can deserialize or parse `data` if needed
+    }
+
+    Ok(HashMap::new())
 }
 
 pub async fn get_topic_records_from_disk(

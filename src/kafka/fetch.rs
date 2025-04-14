@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use crate::{
+    kafka::log::read_topic_metadata,
     types::{array::CVec, cstring::CString, uuid::UUID},
     Decode, Encode, Size,
 };
@@ -209,6 +210,7 @@ impl FetchResponse {
 impl FetchRequest {
     pub async fn handle_request(&self) -> Result<FetchResponse, Error> {
         println!("{:?}", self);
+
         let mut response = FetchResponse::get_topics(
             self.basev2.correlation_id,
             self.session_id,
@@ -221,6 +223,8 @@ impl FetchRequest {
         response.basev1.base.size = res_size as i32;
 
         println!("{response:?}");
+
+        let _metadata = read_topic_metadata().await;
 
         Ok(response)
     }
