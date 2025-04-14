@@ -238,7 +238,7 @@ pub struct TopicRecordDisk {
     pub delta_offset: Varint,
     pub key: CSignedVec<i32>,
     pub value: CSignedString,
-    pub headers_array: CVec<TopicHeaders>,
+    pub headers_array: CSignedVec<TopicHeaders>,
 }
 
 #[derive(Debug, Encode, Decode, Size)]
