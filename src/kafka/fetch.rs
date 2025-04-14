@@ -171,7 +171,6 @@ impl FetchResponse {
             let mut ts: Vec<FetchTopicResponse> = vec![];
             let topics_from_disk = get_topics().await?;
             let mut topics_by_uuid: HashMap<_, _> = HashMap::new();
-
             for (name, value) in &topics_from_disk {
                 topics_by_uuid.insert(value.id.clone(), name.clone());
             }
@@ -192,7 +191,7 @@ impl FetchResponse {
                     ts.push(FetchTopicResponse::unknown_topic(topic.topic_id.clone()));
                 }
             }
-            println!("{ts:?}");
+            println!("After pushing to ts: {ts:?}");
             Ok(FetchResponse {
                 basev1,
                 throttle_time: 0,
