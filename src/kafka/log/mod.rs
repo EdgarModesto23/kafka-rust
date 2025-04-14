@@ -156,6 +156,7 @@ pub async fn get_topic_records_from_disk(
 
     let mut data: Vec<TopicRecordBatch> = Vec::new();
     let mut batch = TopicRecordBatch::decode(&buf[..], &mut offset);
+    println!("{batch:?}");
     while offset < buf.len() {
         let record = TopicRecordDisk::decode(&buf[..], &mut offset);
         batch.records.push(record);
