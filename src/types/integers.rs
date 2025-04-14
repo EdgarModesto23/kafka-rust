@@ -139,3 +139,31 @@ impl Size for i64 {
         std::mem::size_of::<i64>()
     }
 }
+
+impl Encode for u32 {
+    fn encode(&self) -> Vec<u8> {
+        self.to_be_bytes().to_vec() // Convert to big-endian bytes and return as Vec<u8>
+    }
+}
+
+impl Decode for u32 {
+    fn decode(bytes: &[u8], offset: &mut usize) -> Self {
+        let mut array = [0u8; 4];
+        array.copy_from_slice(&bytes[*offset..*offset + 4]);
+        *offset += 4; // Move the offset forward by 4 bytes
+        let r = u32::from_be_bytes(array); // Convert bytes to u32 (big-endian)
+        r
+    }
+}
+
+impl Offset for u32 {
+    fn size(&self) -> usize {
+        std::mem::size_of::<u32>() // Size of u32 in bytes (always 4 bytes)
+    }
+}
+
+impl Size for u32 {
+    fn size_in_bytes(&self) -> usize {
+        std::mem::size_of::<u32>() // Size of u32 in bytes (always 4 bytes)
+    }
+}

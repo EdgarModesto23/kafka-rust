@@ -1,3 +1,4 @@
+use crc32c::crc32c;
 use std::collections::HashSet;
 
 use crate::{

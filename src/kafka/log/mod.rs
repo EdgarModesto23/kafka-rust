@@ -1,7 +1,9 @@
 #[allow(non_camel_case_types, non_upper_case_globals, unreachable_patterns)]
 use std::collections::{HashMap, HashSet};
+use std::path::Path;
 
 use anyhow::Error;
+use crc32c::crc32c;
 use encode_derive::{Decode, Size};
 use partition_record::PartitionRecord;
 use tokio::fs::File;
@@ -112,36 +114,68 @@ pub async fn get_topics() -> Result<HashMap<String, TopicResponse>, Error> {
     Ok(topic_map)
 }
 
+fn calculate_crc(batch: &TopicRecordBatch) -> u32 {
+    let mut data: Vec<u8> = Vec::new();
+
+    data.extend(batch.attributes.encode());
+    data.extend(batch.last_offset_delta.encode());
+    data.extend(batch.base_timestamp.encode());
+    data.extend(batch.max_timestamp.encode());
+    data.extend(batch.producer_id.encode());
+    data.extend(batch.producer_epoch.encode());
+    data.extend(batch.base_sequence.encode());
+    data.extend(batch.records.encode());
+
+    let crc = crc32c(&data);
+    crc
+}
+
 pub async fn get_topic_records_from_disk(
     name: &str,
     idx: i32,
 ) -> Result<Vec<TopicRecordBatch>, Error> {
-    let mut file = File::open(format!(
-        "/tmp/kraft-combined-logs/{}-{}/00000000000000000000.log",
-        name, idx
-    ))
-    .await?;
+    let mut partition = 0;
 
-    let metadata = file.metadata().await?;
+    loop {
+        let path = format!(
+            "/tmp/kraft-combined-logs/{}-{}/00000000000000000000.log",
+            name, partition
+        );
 
-    let mut buf = Vec::with_capacity(metadata.len().try_into()?);
-
-    file.read_to_end(&mut buf).await?;
-
-    println!("data: {buf:?}");
-
-    if buf.is_empty() {
-        return Ok(vec![]);
-    }
-
-    let mut offset = 0;
-
-    while offset < buf.len() {
-        let batch = TopicRecordBatch::decode(&buf[..], &mut offset);
-        println!("{batch:?}");
-        if batch.base_offset as i32 == idx {
-            return Ok(vec![batch]);
+        if !Path::new(&path).exists() {
+            break; // No more files to search
         }
+
+        // Try to open the file
+        match File::open(&path).await {
+            Ok(mut file) => {
+                let metadata = file.metadata().await?;
+                let mut buf = Vec::with_capacity(metadata.len() as usize);
+                file.read_to_end(&mut buf).await?;
+
+                if buf.is_empty() {
+                    partition += 1;
+                    continue;
+                }
+
+                let mut offset = 0;
+
+                while offset < buf.len() {
+                    let mut batch = TopicRecordBatch::decode(&buf[..], &mut offset);
+                    if batch.base_offset as i32 == idx {
+                        let crc = calculate_crc(&batch);
+                        batch.crc = crc;
+                        return Ok(vec![batch]);
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("Failed to read from file at {path}: {e}");
+                break; // Fail or continue, depending on how critical this is
+            }
+        }
+
+        partition += 1;
     }
 
     Ok(vec![])
@@ -197,7 +231,7 @@ pub struct TopicRecordBatch {
     pub batch_length: i32,
     pub partition_leader_epoch: i32,
     pub magic_byte: u8,
-    pub crc: i32,
+    pub crc: u32,
     pub attributes: i16,
     pub last_offset_delta: i32,
     pub base_timestamp: i64,
