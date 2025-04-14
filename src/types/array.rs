@@ -103,7 +103,7 @@ where
         }
 
         let size = UVarint::new(
-            (self.data.len()) as u64,
+            (self.data.len() - 1) as u64,
             unsigned_varint_bytes_wide(self.data.len()),
         );
 
