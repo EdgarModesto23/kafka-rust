@@ -134,34 +134,48 @@ pub async fn get_topic_records_from_disk(
     name: &str,
     idx: i64,
 ) -> Result<Vec<TopicRecordBatch>, Error> {
-    let mut file = File::open(format!(
-        "/tmp/kraft-combined-logs/{}-{}/00000000000000000000.log",
-        name, idx
-    ))
-    .await?;
+    let mut partition = 0;
 
-    let metadata = file.metadata().await?;
+    loop {
+        let path = format!(
+            "/tmp/kraft-combined-logs/{}-{}/00000000000000000000.log",
+            name, partition
+        );
 
-    let mut buf = Vec::with_capacity(metadata.len().try_into()?);
-
-    file.read_to_end(&mut buf).await?;
-
-    println!("data: {buf:?}");
-
-    if buf.is_empty() {
-        return Ok(vec![]);
-    }
-
-    let mut offset = 0;
-
-    while offset < buf.len() {
-        let mut batch = TopicRecordBatch::decode(&buf[..], &mut offset);
-        if batch.base_offset == idx {
-            println!("aaaaaaaaaa");
-            let crc = calculate_crc(&batch);
-            batch.crc = crc;
-            return Ok(vec![batch]);
+        if !Path::new(&path).exists() {
+            break; // No more files to search
         }
+
+        // Try to open the file
+        match File::open(&path).await {
+            Ok(mut file) => {
+                let metadata = file.metadata().await?;
+                let mut buf = Vec::with_capacity(metadata.len() as usize);
+                file.read_to_end(&mut buf).await?;
+
+                if buf.is_empty() {
+                    partition += 1;
+                    continue;
+                }
+
+                let mut offset = 0;
+
+                while offset < buf.len() {
+                    let mut batch = TopicRecordBatch::decode(&buf[..], &mut offset);
+                    if batch.base_offset == idx {
+                        let crc = calculate_crc(&batch);
+                        batch.crc = crc;
+                        return Ok(vec![batch]);
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("Failed to read from file at {path}: {e}");
+                break; // Fail or continue, depending on how critical this is
+            }
+        }
+
+        partition += 1;
     }
 
     Ok(vec![])
