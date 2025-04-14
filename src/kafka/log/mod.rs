@@ -157,6 +157,7 @@ pub async fn get_topic_records_from_disk(
     let mut data: Vec<TopicRecordBatch> = Vec::new();
     let mut batch = TopicRecordBatch::decode(&buf[..], &mut offset);
     println!("{batch:?}");
+    println!("{offset:?}");
     while offset < buf.len() {
         let record = TopicRecordDisk::decode(&buf[..], &mut offset);
         batch.records.push(record);
@@ -243,7 +244,7 @@ pub struct TopicRecordDisk {
     pub delta_offset: Varint,
     pub key: CSignedVec<i32>,
     pub value: CSignedString,
-    pub headers_array: CSignedVec<TopicHeaders>,
+    pub headers_array: u8,
 }
 
 #[derive(Debug, Encode, Decode, Size)]
