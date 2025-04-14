@@ -132,13 +132,12 @@ pub async fn get_topic_records_from_disk(name: &str, idx: i32) -> Result<Vec<u8>
     }
 
     let mut offset = 0;
-    let batch = MessageData::decode(&buf[..], &mut offset);
 
-    println!("{batch:?}");
-    println!(
-        "{:?}",
-        String::from_utf8(batch.message.0).expect("Invalid utf8")
-    );
+    while offset < buf.len() {
+        let batch = TopicRecordBatch::decode(&buf[..], &mut offset);
+
+        println!("{batch:?}");
+    }
 
     Ok(buf)
 }
@@ -188,6 +187,34 @@ pub struct LogFile {
 }
 
 #[derive(Debug, Encode, Decode, Size)]
+pub struct TopicRecordBatch {
+    pub base_offset: i64,
+    pub batch_length: i32,
+    pub partition_leader_epoch: i32,
+    pub magic_byte: u8,
+    pub crc: i32,
+    pub attributes: i16,
+    pub last_offset_delta: i32,
+    pub base_timestamp: i64,
+    pub max_timestamp: i64,
+    pub producer_id: i64,
+    pub producer_epoch: i16,
+    pub base_sequence: i32,
+    pub records: Vec<TopicRecordDisk>,
+}
+
+#[derive(Debug, Encode, Decode, Size)]
+pub struct TopicRecordDisk {
+    pub length: Varint,
+    pub attributes: u8,
+    pub timestamp: Varint,
+    pub delta_offset: Varint,
+    pub key: CSignedVec<i32>,
+    pub value: CString,
+    pub headers_array: UVarint,
+}
+
+#[derive(Debug, Encode, Decode, Size)]
 pub struct MessageData {
     pub base_offset: i64,
     pub batch_length: i32,
@@ -201,11 +228,6 @@ pub struct MessageData {
     pub producer_id: i64,
     pub producer_epoch: i16,
     pub base_sequence: i32,
-    pub length: Varint,
-    pub attributes_record: u8,
-    pub timestamp: Varint,
-    pub delta_offset: Varint,
-    pub key: CSignedVec<i32>,
     pub message: ByteBuf,
 }
 
