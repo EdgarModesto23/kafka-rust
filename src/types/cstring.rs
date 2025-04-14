@@ -1,20 +1,69 @@
-use crate::*;
+use crate::{types::varint::Varint, *};
 
 use super::uvarint::UVarint;
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct CSignedString(pub String, pub usize);
+
+impl Decode for CSignedString {
+    fn decode(bytes: &[u8], offset: &mut usize) -> Self {
+        println!("offset at csignedstring: {offset:?}");
+
+        let mut len = Varint::decode(bytes, offset);
+        println!("len detected: {len:?}");
+
+        if len.0 < 1 {
+            len.0 = 1;
+        }
+
+        let value = String::from_utf8(bytes[*offset..*offset + (len.0 as usize)].to_vec()).unwrap();
+        println!("value: {value:?}");
+
+        *offset += value.len();
+
+        Self(value, len.get_size())
+    }
+}
+
+impl Encode for CSignedString {
+    fn encode(&self) -> Vec<u8> {
+        let mut v = Vec::new();
+
+        // Calculate size with Varint encoding
+        let size = Varint::new((self.0.len() - 1) as i64);
+        v.extend_from_slice(&size.encode());
+        v.extend_from_slice(self.0.as_bytes());
+
+        v
+    }
+}
+
+impl Offset for CSignedString {
+    fn size(&self) -> usize {
+        self.1 + self.0.len()
+    }
+}
+
+impl Size for CSignedString {
+    fn size_in_bytes(&self) -> usize {
+        self.1 + self.0.len()
+    }
+}
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct CString(pub String, pub usize);
 
 impl Decode for CString {
     fn decode(bytes: &[u8], offset: &mut usize) -> Self {
-        println!("{offset:?}");
+        println!("offset at cstring: {offset:?}");
         let mut len = UVarint::decode(bytes, offset);
-        println!("{len:?}");
+        println!("len detected: {len:?}");
         if len.0 < 1 {
             len.0 = 1
         }
         let value =
             String::from_utf8(bytes[*offset..*offset + (len.0 - 1) as usize].to_vec()).unwrap();
+        println!("value: {value:?}");
         *offset += value.len();
 
         Self(value, len.1)

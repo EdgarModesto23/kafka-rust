@@ -1,0 +1,106 @@
+[tester::#EG2] -----+-------------------------------------------------+-----------------
+[tester::#EG2] 0000 | 00 00 00 e9 68 7b fd e1 00 00 00 00 00 00 00 00 | ....h{..........
+[tester::#EG2] 0010 | 00 00 00 02 00 00 00 00 00 00 40 00 80 00 00 00 | ..........@.....
+[tester::#EG2] 0020 | 00 00 00 43 02 00 00 00 00 00 00 00 00 00 00 00 | ...C............
+[tester::#EG2] 0030 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | ................
+[tester::#EG2] 0040 | 00 00 00 00 00 00 00 00 a1 01 00 00 00 00 00 00 | ................
+[tester::#EG2] 0050 | 00 00 00 00 00 44 00 00 00 00 02 ab fd 04 91 00 | .....D..........
+[tester::#EG2] 0060 | 00 00 00 00 00 00 00 01 91 e0 5b 6d 8b 00 00 01 | ..........[m....
+[tester::#EG2] 0070 | 91 e0 5b 6d 8b 00 00 00 00 00 00 00 00 00 00 00 | ..[m............
+[tester::#EG2] 0080 | 00 00 00 00 00 00 01 24 00 00 00 01 18 48 65 6c | .......$.....Hel
+[tester::#EG2] 0090 | 6c 6f 20 4b 61 66 6b 61 21 00 00 00 00 00 00 00 | lo Kafka!.......
+[tester::#EG2] 00a0 | 00 01 00 00 00 44 00 00 00 00 02 98 ec 18 d3 00 | .....D..........
+[tester::#EG2] 00b0 | 00 00 00 00 00 00 00 01 91 e0 5b 6d 8b 00 00 01 | ..........[m....
+[tester::#EG2] 00c0 | 91 e0 5b 6d 8b 00 00 00 00 00 00 00 00 00 00 00 | ..[m............
+[tester::#EG2] 00d0 | 00 00 00 00 00 00 01 24 00 00 00 01 18 48 65 6c | .......$.....Hel
+[tester::#EG2] 00e0 | 6c 6f 20 57 6f 72 6c 64 21 00 00 00 00          | lo World!....
+[tester::#EG2]
+[tester::#EG2] [Decoder] - .ResponseHeader
+[tester::#EG2] [Decoder]   - .correlation_id (1752956385)
+[tester::#EG2] [Decoder]   - .TAG_BUFFER
+[tester::#EG2] [Decoder] - .ResponseBody
+[tester::#EG2] [Decoder]   - .throttle_time_ms (0)
+[tester::#EG2] [Decoder]   - .error_code (0)
+[tester::#EG2] [Decoder]   - .session_id (0)
+[tester::#EG2] [Decoder]   - .num_responses (1)
+[tester::#EG2] [Decoder]   - .TopicResponse[0]
+[tester::#EG2] [Decoder]     - .topic_id (00000000-0000-4000-8000-000000000043)
+[tester::#EG2] [Decoder]     - .num_partitions (1)
+[tester::#EG2] [Decoder]     - .PartitionResponse[0]
+[tester::#EG2] [Decoder]       - .partition_index (0)
+[tester::#EG2] [Decoder]       - .error_code (0)
+[tester::#EG2] [Decoder]       - .high_watermark (0)
+[tester::#EG2] [Decoder]       - .last_stable_offset (0)
+[tester::#EG2] [Decoder]       - .log_start_offset (0)
+[tester::#EG2] [Decoder]       - .num_aborted_transactions (0)
+[tester::#EG2] [Decoder]       - .preferred_read_replica (0)
+[tester::#EG2] [Decoder]       - .compact_records_length (160)
+[tester::#EG2] [Decoder]       - .RecordBatch[0]
+[tester::#EG2] [Decoder]         - .base_offset (0)
+[tester::#EG2] [Decoder]         - .batch_length (68)
+[tester::#EG2] [Decoder]         - .partition_leader_epoch (0)
+[tester::#EG2] [Decoder]         - .magic_byte (2)
+[tester::#EG2] [Decoder]         - .crc (-1409481583)
+[tester::#EG2] [Decoder]         - .record_attributes (0)
+[tester::#EG2] [Decoder]         - .last_offset_delta (0)
+[tester::#EG2] [Decoder]         - .base_timestamp (1726045973899)
+[tester::#EG2] [Decoder]         - .max_timestamp (1726045973899)
+[tester::#EG2] [Decoder]         - .producer_id (0)
+[tester::#EG2] [Decoder]         - .producer_epoch (0)
+[tester::#EG2] [Decoder]         - .base_sequence (0)
+[tester::#EG2] [Decoder]         - .num_records (1)
+[tester::#EG2] [Decoder]         - .Record[0]
+[tester::#EG2] [Decoder]           - .length (18)
+[tester::#EG2] [Decoder]           - .attributes (0)
+[tester::#EG2] [Decoder]           - .timestamp_delta (0)
+[tester::#EG2] [Decoder]           - .offset_delta (0)
+[tester::#EG2] [Decoder]           - .key_length (-1)
+[tester::#EG2] [Decoder]           - .key ("")
+[tester::#EG2] [Decoder]           - .value_length (12)
+[tester::#EG2] [Decoder]           - .value ("Hello Kafka!")
+[tester::#EG2] [Decoder]           - .num_headers (0)
+[tester::#EG2] [Decoder]       - .RecordBatch[1]
+[tester::#EG2] [Decoder]         - .base_offset (1)
+[tester::#EG2] [Decoder]         - .batch_length (68)
+[tester::#EG2] [Decoder]         - .partition_leader_epoch (0)
+[tester::#EG2] [Decoder]         - .magic_byte (2)
+[tester::#EG2] [Decoder]         - .crc (-1729357613)
+[tester::#EG2] [Decoder]         - .record_attributes (0)
+[tester::#EG2] [Decoder]         - .last_offset_delta (0)
+[tester::#EG2] [Decoder]         - .base_timestamp (1726045973899)
+[tester::#EG2] [Decoder]         - .max_timestamp (1726045973899)
+[tester::#EG2] [Decoder]         - .producer_id (0)
+[tester::#EG2] [Decoder]         - .producer_epoch (0)
+[tester::#EG2] [Decoder]         - .base_sequence (0)
+[tester::#EG2] [Decoder]         - .num_records (1)
+[tester::#EG2] [Decoder]         - .Record[0]
+[tester::#EG2] [Decoder]           - .length (18)
+[tester::#EG2] [Decoder]           - .attributes (0)
+[tester::#EG2] [Decoder]           - .timestamp_delta (0)
+[tester::#EG2] [Decoder]           - .offset_delta (0)
+[tester::#EG2] [Decoder]           - .key_length (-1)
+[tester::#EG2] [Decoder]           - .key ("")
+[tester::#EG2] [Decoder]           - .value_length (12)
+[tester::#EG2] [Decoder]           - .value ("Hello World!")
+[tester::#EG2] [Decoder]           - .num_headers (0)
+[tester::#EG2] [Decoder]       - .TAG_BUFFER
+[tester::#EG2] [Decoder]     - .TAG_BUFFER
+[tester::#EG2] [Decoder]   - .TAG_BUFFER
+[tester::#EG2] ✓ Correlation ID: 1752956385
+[tester::#EG2] ✓ Throttle Time: 0
+[tester::#EG2] ✓ Error Code: 0 (NO_ERROR)
+[tester::#EG2]   ✓ TopicResponse[0] Topic UUID: 00000000-0000-4000-8000-000000000043
+[tester::#EG2]     ✓ PartitionResponse[0] Error code: 0 (NO_ERROR)
+[tester::#EG2]     ✓ PartitionResponse[0] Partition Index: 0
+[tester::#EG2] Expected recordBatches.length to be 1, got 2
+[tester::#EG2] Test failed
+[tester::#EG2] Terminating program
+[your_program] "quz"
+[your_program] data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 68, 0, 0, 0, 0, 2, 171, 253, 4, 145, 0, 0, 0, 0, 0, 0, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 36, 0, 0, 0, 1, 24, 72, 101, 108, 108, 111, 32, 75, 97, 102, 107, 97, 33, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 68, 0, 0, 0, 0, 2, 152, 236, 24, 211, 0, 0, 0, 0, 0, 0, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 36, 0, 0, 0, 1, 24, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100, 33, 0]
+[your_program] MessageData { base_offset: 0, batch_length: 68, partition_leader_epoch: 0, magic_byte: 2, crc: -1409481583, attributes: 0, last_offset_delta: 0, base_timestamp: 1726045973899, max_timestamp: 1726045973899, producer_id: 0, producer_epoch: 0, base_sequence: 0, length: Varint(0), attributes_record: 0, timestamp: Varint(0), delta_offset: Varint(0), key: CSignedVec { data: [1, 407397740, 1819222091, 1634102113, 553648128, 0, 65536, 4456448, 664, -333917440, 0, 1, -1847567507, -1962934271, -1847567507, -1962934272, 0, 0] }, message: ByteBuf([0, 0, 0, 0, 0, 0, 1, 36, 0, 0, 0, 1, 24, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100, 33, 0]) }
+[your_program] "\0\0\0\0\0\0\u{1}$\0\0\0\u{1}\u{18}Hello World!\0"
+[your_program] [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 68, 0, 0, 0, 0, 2, 171, 253, 4, 145, 0, 0, 0, 0, 0, 0, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 36, 0, 0, 0, 1, 24, 72, 101, 108, 108, 111, 32, 75, 97, 102, 107, 97, 33, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 68, 0, 0, 0, 0, 2, 152, 236, 24, 211, 0, 0, 0, 0, 0, 0, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 36, 0, 0, 0, 1, 24, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100, 33, 0]
+[your_program] data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 68, 0, 0, 0, 0, 2, 171, 253, 4, 145, 0, 0, 0, 0, 0, 0, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 36, 0, 0, 0, 1, 24, 72, 101, 108, 108, 111, 32, 75, 97, 102, 107, 97, 33, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 68, 0, 0, 0, 0, 2, 152, 236, 24, 211, 0, 0, 0, 0, 0, 0, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 36, 0, 0, 0, 1, 24, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100, 33, 0]
+[your_program] MessageData { base_offset: 0, batch_length: 68, partition_leader_epoch: 0, magic_byte: 2, crc: -1409481583, attributes: 0, last_offset_delta: 0, base_timestamp: 1726045973899, max_timestamp: 1726045973899, producer_id: 0, producer_epoch: 0, base_sequence: 0, length: Varint(0), attributes_record: 0, timestamp: Varint(0), delta_offset: Varint(0), key: CSignedVec { data: [1, 407397740, 1819222091, 1634102113, 553648128, 0, 65536, 4456448, 664, -333917440, 0, 1, -1847567507, -1962934271, -1847567507, -1962934272, 0, 0] }, message: ByteBuf([0, 0, 0, 0, 0, 0, 1, 36, 0, 0, 0, 1, 24, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100, 33, 0]) }
+[your_program] "\0\0\0\0\0\0\u{1}$\0\0\0\u{1}\u{18}Hello World!\0"
+[tester::#EG2] Program terminated successfull

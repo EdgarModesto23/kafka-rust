@@ -12,7 +12,7 @@ use crate::{
     types::{
         array::{CSignedVec, CVec},
         bytes::ByteBuf,
-        cstring::CString,
+        cstring::{CSignedString, CString},
         record::GenericRecord,
         uvarint::UVarint,
         varint::Varint,
@@ -215,7 +215,7 @@ pub struct TopicRecordDisk {
     pub timestamp: Varint,
     pub delta_offset: Varint,
     pub key: CSignedVec<i32>,
-    pub value: CString,
+    pub value: CSignedString,
     pub headers_array: UVarint,
 }
 
