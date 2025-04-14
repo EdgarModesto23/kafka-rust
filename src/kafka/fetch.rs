@@ -169,7 +169,7 @@ impl FetchResponse {
                 if let Some(_) = topics_uuid.get(&topic.topic_id) {
                     let topic_name = match topics_from_disk.iter().find(|(k, v)| v.name.0 == **k) {
                         Some(value) => value.0,
-                        None => "paz",
+                        None => continue,
                     };
                     println!("{topic_name:?}");
                     let topic_partitions =
