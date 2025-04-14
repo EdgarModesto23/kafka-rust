@@ -132,15 +132,14 @@ fn calculate_crc(batch: &TopicRecordBatch) -> u32 {
 
 pub async fn get_topic_records_from_disk(
     name: &str,
+    partition: i32,
     idx: i64,
 ) -> Result<Vec<TopicRecordBatch>, Error> {
     let mut file = File::open(format!(
         "/tmp/kraft-combined-logs/{}-{}/00000000000000000000.log",
-        name, idx
+        name, partition
     ))
     .await?;
-
-    println!("offset: {idx}");
 
     let metadata = file.metadata().await?;
 

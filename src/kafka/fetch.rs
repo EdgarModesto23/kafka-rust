@@ -75,8 +75,13 @@ impl FetchTopicResponse {
             tagged_field: 0,
         }
     }
-    pub async fn known_topic(topic_id: UUID, idx: i64, topic_name: &str) -> Result<Self, Error> {
-        let data = FetchPartitionsResponse::known_topic(topic_name, idx).await?;
+    pub async fn known_topic(
+        topic_id: UUID,
+        idx: i64,
+        topic_name: &str,
+        partition: i32,
+    ) -> Result<Self, Error> {
+        let data = FetchPartitionsResponse::known_topic(topic_name, idx, partition).await?;
         Ok(Self {
             topic_id,
             partitions: CVec { data: vec![data] },
@@ -112,8 +117,8 @@ impl FetchPartitionsResponse {
             tagged_field: 0,
         }
     }
-    pub async fn known_topic(name: &str, idx: i64) -> Result<Self, Error> {
-        let data = get_topic_records_from_disk(name, idx).await?;
+    pub async fn known_topic(name: &str, idx: i64, partition: i32) -> Result<Self, Error> {
+        let data = get_topic_records_from_disk(name, partition, idx).await?;
         Ok(Self {
             partition_idx: 0,
             error_code: 0,
@@ -143,7 +148,6 @@ impl FetchResponse {
         correlation_id: i32,
         session_id: i32,
         topics: &Vec<TopicFetch>,
-        file_idx: i64,
     ) -> Result<Self, Error> {
         let base = BaseResponse::new_base(correlation_id);
         let tag_buffer = 0;
@@ -162,26 +166,25 @@ impl FetchResponse {
             let topics_from_disk = get_topics().await?;
             let mut topics_uuid = HashSet::new();
             topics_from_disk.iter().for_each(|(_, value)| {
-                topics_uuid.insert(value.id.clone());
+                topics_uuid.insert(value.id.clone().to_string());
             });
             for topic in topics {
-                if let Some(_) = topics_uuid.get(&topic.topic_id) {
+                if let Some(_) = topics_uuid.get(&topic.topic_id.to_string()) {
                     let topic_name = match topics_from_disk.iter().find(|(k, v)| v.name.0 == **k) {
                         Some(value) => value.0,
                         None => continue,
                     };
-                    println!("{topic_name:?}");
-                    let topic_partitions =
-                        get_topic_records_from_disk(topic_name, file_idx).await?;
-                    println!("{topic_partitions:?}");
-                    ts.push(
-                        FetchTopicResponse::known_topic(
-                            topic.topic_id.clone(),
-                            file_idx,
-                            topic_name,
-                        )
-                        .await?,
-                    );
+                    for partition in &topic.partitions.data {
+                        ts.push(
+                            FetchTopicResponse::known_topic(
+                                topic.topic_id.clone(),
+                                partition.fetch_offset,
+                                topic_name,
+                                partition.partition,
+                            )
+                            .await?,
+                        );
+                    }
                 } else {
                     ts.push(FetchTopicResponse::unknown_topic(topic.topic_id.clone()));
                 }
@@ -200,15 +203,11 @@ impl FetchResponse {
 
 impl FetchRequest {
     pub async fn handle_request(&self) -> Result<FetchResponse, Error> {
-        println!(
-            "partition idx:{:?}",
-            self.topics.data[0].partitions.data[0].partition
-        );
+        println!("{:?}", self);
         let mut response = FetchResponse::get_topics(
             self.basev2.correlation_id,
             self.session_id,
             &self.topics.data,
-            self.topics.data[0].partitions.data[0].fetch_offset,
         )
         .await?;
 

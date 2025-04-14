@@ -7,17 +7,13 @@ pub struct CSignedString(pub String, pub usize);
 
 impl Decode for CSignedString {
     fn decode(bytes: &[u8], offset: &mut usize) -> Self {
-        println!("offset at csignedstring: {offset:?}");
-
         let mut len = Varint::decode(bytes, offset);
-        println!("len detected: {len:?}");
 
         if len.0 < 1 {
             len.0 = 1;
         }
 
         let value = String::from_utf8(bytes[*offset..*offset + (len.0 as usize)].to_vec()).unwrap();
-        println!("value: {value:?}");
 
         *offset += value.len();
 
