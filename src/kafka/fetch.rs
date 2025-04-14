@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    types::{array::CVec, cstring::CString, uuid::UUID},
+    types::{array::CVec, bytes::ByteBuf, cstring::CString, uuid::UUID},
     Decode, Encode, Size,
 };
 use anyhow::Error;
@@ -99,7 +99,7 @@ pub struct FetchPartitionsResponse {
     pub log_start_offset: i64,
     pub aborted_transactions: CVec<FetchPartitionsResponse>,
     pub preferred_read_replica: i32,
-    pub records: CVec<TopicRecordBatch>,
+    pub records: ByteBuf,
     pub tagged_field: u8,
 }
 
@@ -113,17 +113,12 @@ impl FetchPartitionsResponse {
             log_start_offset: 0,
             aborted_transactions: CVec { data: vec![] },
             preferred_read_replica: 0,
-            records: CVec { data: vec![] },
+            records: ByteBuf::empty(),
             tagged_field: 0,
         }
     }
     pub async fn known_topic(name: &str, idx: i64, partition: i32) -> Result<Self, Error> {
         let data = get_topic_records_from_disk(name, partition, idx).await?;
-        println!("Value on known_topic fetch partitionsResponse: {data:?}");
-        println!(
-            "Length on known_topic fetch partitionsResponse: {:?}",
-            data.len()
-        );
         Ok(Self {
             partition_idx: 0,
             error_code: 0,
@@ -132,7 +127,7 @@ impl FetchPartitionsResponse {
             log_start_offset: 0,
             aborted_transactions: CVec { data: vec![] },
             preferred_read_replica: -1,
-            records: CVec { data },
+            records: data,
             tagged_field: 0,
         })
     }
@@ -190,7 +185,6 @@ impl FetchResponse {
                     ts.push(FetchTopicResponse::unknown_topic(topic.topic_id.clone()));
                 }
             }
-            println!("After pushing to ts: {ts:?}");
             Ok(FetchResponse {
                 basev1,
                 throttle_time: 0,

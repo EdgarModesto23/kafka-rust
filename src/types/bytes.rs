@@ -1,3 +1,5 @@
+use std::vec;
+
 use crate::{Decode, Encode, Offset, Size};
 
 use super::{unsigned_varint_bytes_wide, uvarint::UVarint};
@@ -13,6 +15,12 @@ impl Decode for ByteBuf {
             Vec::from(slice),
             UVarint::new(slice.len() as u64, unsigned_varint_bytes_wide(slice.len())),
         )
+    }
+}
+
+impl ByteBuf {
+    pub fn empty() -> Self {
+        ByteBuf(vec![], UVarint(0, 1))
     }
 }
 

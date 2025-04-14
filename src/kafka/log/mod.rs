@@ -133,7 +133,7 @@ pub async fn get_topic_records_from_disk(
     name: &str,
     partition: i32,
     _idx: i64,
-) -> Result<Vec<TopicRecordBatch>, Error> {
+) -> Result<ByteBuf, Error> {
     let mut file = File::open(format!(
         "/tmp/kraft-combined-logs/{}-{}/00000000000000000000.log",
         name, partition
@@ -147,7 +147,7 @@ pub async fn get_topic_records_from_disk(
     file.read_to_end(&mut buf).await?;
 
     if buf.is_empty() {
-        return Ok(vec![]);
+        return Ok(ByteBuf(vec![], UVarint::new(0, 1)));
     }
 
     println!("Contents: {buf:?}");
@@ -156,19 +156,7 @@ pub async fn get_topic_records_from_disk(
 
     let data_as_bytes = ByteBuf::decode(&buf[..], &mut another_offset);
 
-    println!("data as bytes: {data_as_bytes:?}");
-
-    let mut offset = 0;
-
-    let mut data: Vec<TopicRecordBatch> = Vec::new();
-    while offset < buf.len() {
-        let mut batch = TopicRecordBatch::decode(&buf[..], &mut offset);
-        let crc = calculate_crc(&batch);
-        batch.crc = crc;
-        data.push(batch);
-    }
-
-    Ok(data)
+    Ok(data_as_bytes)
 }
 
 pub async fn get_records_from_disk() -> Result<Vec<RecordBatch>, Error> {
@@ -229,7 +217,7 @@ pub struct TopicRecordBatch {
     pub producer_id: i64,
     pub producer_epoch: i16,
     pub base_sequence: i32,
-    pub records: Vec<TopicRecordDisk>,
+    pub records: ByteBuf,
 }
 
 #[derive(Debug, Encode, Decode, Size)]
