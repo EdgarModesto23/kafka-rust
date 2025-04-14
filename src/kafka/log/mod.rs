@@ -132,7 +132,7 @@ fn calculate_crc(batch: &TopicRecordBatch) -> u32 {
 
 pub async fn get_topic_records_from_disk(
     name: &str,
-    idx: i32,
+    idx: i64,
 ) -> Result<Vec<TopicRecordBatch>, Error> {
     let mut partition = 0;
 
@@ -162,7 +162,7 @@ pub async fn get_topic_records_from_disk(
 
                 while offset < buf.len() {
                     let mut batch = TopicRecordBatch::decode(&buf[..], &mut offset);
-                    if batch.base_offset as i32 == idx {
+                    if batch.base_offset == idx {
                         let crc = calculate_crc(&batch);
                         batch.crc = crc;
                         return Ok(vec![batch]);
@@ -386,7 +386,11 @@ mod tests {
 
         println!("{decoded:?}");
 
-        assert_eq!(decoded.base_offset, 1);
+        assert_eq!(decoded.base_offset, 0);
+        assert_eq!(
+            decoded.records[0].value.0,
+            "Hello Reverse Engineering!".to_string()
+        );
     }
 
     #[test]

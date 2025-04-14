@@ -1,4 +1,3 @@
-use crc32c::crc32c;
 use std::collections::HashSet;
 
 use crate::{
@@ -76,7 +75,7 @@ impl FetchTopicResponse {
             tagged_field: 0,
         }
     }
-    pub async fn known_topic(topic_id: UUID, idx: i32, topic_name: &str) -> Result<Self, Error> {
+    pub async fn known_topic(topic_id: UUID, idx: i64, topic_name: &str) -> Result<Self, Error> {
         let data = FetchPartitionsResponse::known_topic(topic_name, idx).await?;
         Ok(Self {
             topic_id,
@@ -113,7 +112,7 @@ impl FetchPartitionsResponse {
             tagged_field: 0,
         }
     }
-    pub async fn known_topic(name: &str, idx: i32) -> Result<Self, Error> {
+    pub async fn known_topic(name: &str, idx: i64) -> Result<Self, Error> {
         let data = get_topic_records_from_disk(name, idx).await?;
         Ok(Self {
             partition_idx: 0,
@@ -144,7 +143,7 @@ impl FetchResponse {
         correlation_id: i32,
         session_id: i32,
         topics: &Vec<TopicFetch>,
-        file_idx: i32,
+        file_idx: i64,
     ) -> Result<Self, Error> {
         let base = BaseResponse::new_base(correlation_id);
         let tag_buffer = 0;
@@ -209,7 +208,7 @@ impl FetchRequest {
             self.basev2.correlation_id,
             self.session_id,
             &self.topics.data,
-            self.topics.data[0].partitions.data[0].partition,
+            self.topics.data[0].partitions.data[0].fetch_offset,
         )
         .await?;
 
