@@ -185,6 +185,8 @@ pub async fn get_records_from_disk() -> Result<Vec<RecordBatch>, Error> {
         batches.push(batch);
     }
 
+    println!("{batches:?}");
+
     Ok(batches)
 }
 
