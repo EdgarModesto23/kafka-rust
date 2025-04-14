@@ -141,6 +141,8 @@ pub async fn get_topic_records_from_disk(
     ))
     .await?;
 
+    println!("{name}");
+
     let metadata = file.metadata().await?;
 
     let mut buf = Vec::with_capacity(metadata.len().try_into()?);

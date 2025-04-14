@@ -164,6 +164,7 @@ impl FetchResponse {
         } else {
             let mut ts: Vec<FetchTopicResponse> = vec![];
             let topics_from_disk = get_topics().await?;
+            println!("{topics:?}");
             let mut topics_uuid = HashSet::new();
             topics_from_disk.iter().for_each(|(_, value)| {
                 topics_uuid.insert(value.id.clone().to_string());
