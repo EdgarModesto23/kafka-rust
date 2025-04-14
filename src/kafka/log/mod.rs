@@ -5,8 +5,6 @@ use encode_derive::{Decode, Size};
 use partition_record::PartitionRecord;
 #[allow(non_camel_case_types, non_upper_case_globals, unreachable_patterns)]
 use std::collections::{HashMap, HashSet};
-use std::path::PathBuf;
-use tokio::fs;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 use topic_log::TopicRecord;
@@ -17,7 +15,6 @@ use crate::{
         bytes::ByteBuf,
         cstring::{CSignedString, CString},
         record::GenericRecord,
-        uuid::UUID,
         uvarint::UVarint,
         varint::Varint,
     },
@@ -235,7 +232,7 @@ pub struct TopicRecordDisk {
     pub delta_offset: Varint,
     pub key: CSignedVec<i32>,
     pub value: CSignedString,
-    pub headers_array: UVarint,
+    pub headers_array: CVec<u8>,
 }
 
 #[derive(Debug, Encode, Decode, Size)]
