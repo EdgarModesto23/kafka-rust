@@ -155,12 +155,14 @@ pub async fn get_topic_records_from_disk(
     let mut offset = 0;
 
     let mut data: Vec<TopicRecordBatch> = Vec::new();
+    let mut batch = TopicRecordBatch::decode(&buf[..], &mut offset);
     while offset < buf.len() {
-        let mut batch = TopicRecordBatch::decode(&buf[..], &mut offset);
-        let crc = calculate_crc(&batch);
-        batch.crc = crc;
-        data.push(batch);
+        let record = TopicRecordDisk::decode(&buf[..], &mut offset);
+        batch.records.push(record);
     }
+    let crc = calculate_crc(&batch);
+    batch.crc = crc;
+    data.push(batch);
 
     Ok(data)
 }
