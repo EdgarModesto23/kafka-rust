@@ -133,7 +133,7 @@ fn calculate_crc(batch: &TopicRecordBatch) -> u32 {
 pub async fn get_topic_records_from_disk(
     name: &str,
     partition: i32,
-    idx: i64,
+    _idx: i64,
 ) -> Result<Vec<TopicRecordBatch>, Error> {
     let mut file = File::open(format!(
         "/tmp/kraft-combined-logs/{}-{}/00000000000000000000.log",
@@ -157,17 +157,14 @@ pub async fn get_topic_records_from_disk(
 
     let mut offset = 0;
 
+    let mut data: Vec<TopicRecordBatch> = Vec::new();
     while offset < buf.len() {
         let mut batch = TopicRecordBatch::decode(&buf[..], &mut offset);
-        println!("base offset: {:?}", batch.base_offset);
-        if batch.base_offset == idx {
-            let crc = calculate_crc(&batch);
-            batch.crc = crc;
-            return Ok(vec![batch]);
-        }
+        let crc = calculate_crc(&batch);
+        batch.crc = crc;
+        data.push(batch);
     }
-
-    Ok(vec![])
+    Ok(data)
 }
 
 pub async fn get_records_from_disk() -> Result<Vec<RecordBatch>, Error> {
