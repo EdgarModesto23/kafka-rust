@@ -119,6 +119,11 @@ impl FetchPartitionsResponse {
     }
     pub async fn known_topic(name: &str, idx: i64, partition: i32) -> Result<Self, Error> {
         let data = get_topic_records_from_disk(name, partition, idx).await?;
+        println!("Value on known_topic fetch partitionsResponse: {data:?}");
+        println!(
+            "Length on known_topic fetch partitionsResponse: {:?}",
+            data.len()
+        );
         Ok(Self {
             partition_idx: 0,
             error_code: 0,
