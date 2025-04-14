@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use crate::{
-    kafka::log::read_topic_metadata,
     types::{array::CVec, cstring::CString, uuid::UUID},
     Decode, Encode, Size,
 };
