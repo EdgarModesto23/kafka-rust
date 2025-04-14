@@ -102,17 +102,12 @@ where
             return vec![0];
         }
 
-        println!("Data on CVec: {:?}", self.data);
-
         let size = UVarint::new(
             (self.data.len() - 1) as u64,
             unsigned_varint_bytes_wide(self.data.len()),
         );
-        println!("Size {:?}", size);
 
         v.extend_from_slice(&size.encode());
-
-        println!("On buffer: {v:?}");
 
         for value in &self.data {
             v.extend_from_slice(&value.encode());
@@ -172,8 +167,6 @@ where
         if size == 0 {
             return vec![u8::MAX];
         }
-
-        println!("Value for vec: {:?}", self);
 
         v.extend_from_slice(&size.encode());
 

@@ -225,6 +225,12 @@ pub struct TopicRecordBatch {
 }
 
 #[derive(Debug, Encode, Decode, Size)]
+pub struct TopicHeaders {
+    pub header_key: CString,
+    pub value: Vec<u8>,
+}
+
+#[derive(Debug, Encode, Decode, Size)]
 pub struct TopicRecordDisk {
     pub length: Varint,
     pub attributes: u8,
@@ -232,7 +238,7 @@ pub struct TopicRecordDisk {
     pub delta_offset: Varint,
     pub key: CSignedVec<i32>,
     pub value: CSignedString,
-    pub headers_array: u8,
+    pub headers_array: CVec<TopicHeaders>,
 }
 
 #[derive(Debug, Encode, Decode, Size)]
