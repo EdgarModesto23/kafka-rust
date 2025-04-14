@@ -112,7 +112,10 @@ pub async fn get_topics() -> Result<HashMap<String, TopicResponse>, Error> {
     Ok(topic_map)
 }
 
-pub async fn get_topic_records_from_disk(name: &str, idx: i32) -> Result<Vec<u8>, Error> {
+pub async fn get_topic_records_from_disk(
+    name: &str,
+    idx: i32,
+) -> Result<Vec<TopicRecordBatch>, Error> {
     let mut file = File::open(format!(
         "/tmp/kraft-combined-logs/{}-{}/00000000000000000000.log",
         name, idx
@@ -135,11 +138,13 @@ pub async fn get_topic_records_from_disk(name: &str, idx: i32) -> Result<Vec<u8>
 
     while offset < buf.len() {
         let batch = TopicRecordBatch::decode(&buf[..], &mut offset);
-
         println!("{batch:?}");
+        if batch.base_offset as i32 == idx {
+            return Ok(vec![batch]);
+        }
     }
 
-    Ok(buf)
+    Ok(vec![])
 }
 
 pub async fn get_records_from_disk() -> Result<Vec<RecordBatch>, Error> {
@@ -210,7 +215,7 @@ pub struct TopicRecordDisk {
     pub timestamp: Varint,
     pub delta_offset: Varint,
     pub key: CSignedVec<i32>,
-    pub value: String,
+    pub value: CString,
     pub headers_array: UVarint,
 }
 
@@ -264,7 +269,7 @@ pub struct Record {
 #[cfg(test)]
 mod tests {
     use crate::{
-        kafka::log::{RecordBatch, RecordValue},
+        kafka::log::{RecordBatch, RecordValue, TopicRecordBatch},
         types::cstring::CString,
         Decode,
     };
@@ -343,7 +348,7 @@ mod tests {
 
         let mut offset = 0;
 
-        let decoded = RecordBatch::decode(&test_case[..], &mut offset);
+        let decoded = TopicRecordBatch::decode(&test_case[..], &mut offset);
 
         println!("{decoded:?}");
 

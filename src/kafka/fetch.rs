@@ -8,7 +8,7 @@ use anyhow::Error;
 use encode_derive::{Decode, Size};
 
 use super::{
-    log::{get_topic_records_from_disk, get_topics},
+    log::{get_topic_records_from_disk, get_topics, TopicRecordBatch},
     BaseRequestV2, BaseResponse, BaseResponseV1,
 };
 
@@ -94,7 +94,7 @@ pub struct FetchPartitionsResponse {
     pub log_start_offset: i64,
     pub aborted_transactions: CVec<FetchPartitionsResponse>,
     pub preferred_read_replica: i32,
-    pub records: CVec<u8>,
+    pub records: CVec<TopicRecordBatch>,
     pub tagged_field: u8,
 }
 
