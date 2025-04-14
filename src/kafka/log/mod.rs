@@ -140,6 +140,8 @@ pub async fn get_topic_records_from_disk(
     ))
     .await?;
 
+    println!("offset: {idx}");
+
     let metadata = file.metadata().await?;
 
     let mut buf = Vec::with_capacity(metadata.len().try_into()?);
@@ -156,8 +158,8 @@ pub async fn get_topic_records_from_disk(
 
     while offset < buf.len() {
         let mut batch = TopicRecordBatch::decode(&buf[..], &mut offset);
+        println!("base offset: {:?}", batch.base_offset);
         if batch.base_offset == idx {
-            println!("aaaaaaaaaa");
             let crc = calculate_crc(&batch);
             batch.crc = crc;
             return Ok(vec![batch]);
