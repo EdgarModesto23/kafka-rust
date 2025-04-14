@@ -150,6 +150,8 @@ pub async fn get_topic_records_from_disk(
         return Ok(vec![]);
     }
 
+    println!("Contents: {buf:?}");
+
     let mut offset = 0;
 
     let mut data: Vec<TopicRecordBatch> = Vec::new();
