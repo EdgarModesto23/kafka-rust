@@ -224,7 +224,7 @@ pub struct TopicRecordBatch {
     pub producer_id: i64,
     pub producer_epoch: i16,
     pub base_sequence: i32,
-    pub records: ByteBuf,
+    pub records: Vec<TopicRecordDisk>,
 }
 
 #[derive(Debug, Encode, Decode, Size)]
