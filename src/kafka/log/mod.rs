@@ -132,48 +132,6 @@ fn calculate_crc(batch: &TopicRecordBatch) -> u32 {
     crc
 }
 
-pub struct TopicMetadata {
-    pub name: CString,
-    pub uuid: UUID,
-}
-
-pub async fn read_all_partition_metadata() -> Result<Vec<(String, Vec<u8>)>, Error> {
-    let mut results = Vec::new();
-
-    let base_dir = PathBuf::from("/tmp/kraft-combined-logs");
-    let mut entries = fs::read_dir(&base_dir).await?;
-
-    while let Some(entry) = entries.next_entry().await? {
-        let path = entry.path();
-
-        if path.is_dir() {
-            let metadata_path = path.join("partition.metadata");
-
-            if metadata_path.exists() {
-                let mut file = fs::File::open(&metadata_path).await?;
-                let mut buffer = Vec::new();
-                file.read_to_end(&mut buffer).await?;
-
-                // Extract name of the directory (like foo-0, paz-0, etc.)
-                if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                    results.push((name.to_string(), buffer));
-                }
-            }
-        }
-    }
-
-    Ok(results)
-}
-
-pub async fn read_topic_metadata() -> Result<HashMap<String, UUID>, Error> {
-    let metadata = read_all_partition_metadata().await?;
-    for (dir_name, data) in metadata {
-        // You can deserialize or parse `data` if needed
-    }
-
-    Ok(HashMap::new())
-}
-
 pub async fn get_topic_records_from_disk(
     name: &str,
     partition: i32,
@@ -191,8 +149,6 @@ pub async fn get_topic_records_from_disk(
 
     file.read_to_end(&mut buf).await?;
 
-    println!("data: {buf:?}");
-
     if buf.is_empty() {
         return Ok(vec![]);
     }
@@ -206,9 +162,6 @@ pub async fn get_topic_records_from_disk(
         batch.crc = crc;
         data.push(batch);
     }
-
-    println!("Data after log file: {data:?}");
-    println!("length: {:?}", data.len());
 
     Ok(data)
 }
@@ -271,7 +224,7 @@ pub struct TopicRecordBatch {
     pub producer_id: i64,
     pub producer_epoch: i16,
     pub base_sequence: i32,
-    pub records: Vec<TopicRecordDisk>,
+    pub records: ByteBuf,
 }
 
 #[derive(Debug, Encode, Decode, Size)]
