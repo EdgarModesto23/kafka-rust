@@ -168,7 +168,6 @@ pub async fn read_all_partition_metadata() -> Result<Vec<(String, Vec<u8>)>, Err
 pub async fn read_topic_metadata() -> Result<HashMap<String, UUID>, Error> {
     let metadata = read_all_partition_metadata().await?;
     for (dir_name, data) in metadata {
-        println!("Read {:?} bytes from {}/partition.metadata", data, dir_name);
         // You can deserialize or parse `data` if needed
     }
 

@@ -172,10 +172,10 @@ impl FetchResponse {
             let topics_from_disk = get_topics().await?;
             let mut topics_uuid = HashSet::new();
             topics_from_disk.iter().for_each(|(_, value)| {
-                topics_uuid.insert(value.id.to_string());
+                topics_uuid.insert(value.id.clone());
             });
             for topic in topics {
-                if let Some(_) = topics_uuid.get(&topic.topic_id.to_string()) {
+                if let Some(_) = topics_uuid.get(&topic.topic_id) {
                     let topic_name = match topics_from_disk.iter().find(|(k, v)| v.name.0 == **k) {
                         Some(value) => value.0,
                         None => continue,
@@ -195,6 +195,7 @@ impl FetchResponse {
                     ts.push(FetchTopicResponse::unknown_topic(topic.topic_id.clone()));
                 }
             }
+            println!("{ts:?}");
             Ok(FetchResponse {
                 basev1,
                 throttle_time: 0,
