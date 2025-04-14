@@ -155,16 +155,12 @@ pub async fn get_topic_records_from_disk(
     let mut offset = 0;
 
     let mut data: Vec<TopicRecordBatch> = Vec::new();
-    let mut batch = TopicRecordBatch::decode(&buf[..], &mut offset);
-    println!("{batch:?}");
-    println!("{offset:?}");
     while offset < buf.len() {
-        let record = TopicRecordDisk::decode(&buf[..], &mut offset);
-        batch.records.push(record);
+        let mut batch = TopicRecordBatch::decode(&buf[..], &mut offset);
+        let crc = calculate_crc(&batch);
+        batch.crc = crc;
+        data.push(batch);
     }
-    let crc = calculate_crc(&batch);
-    batch.crc = crc;
-    data.push(batch);
 
     Ok(data)
 }
@@ -244,7 +240,7 @@ pub struct TopicRecordDisk {
     pub delta_offset: Varint,
     pub key: CSignedVec<i32>,
     pub value: CSignedString,
-    pub headers_array: u8,
+    pub headers_array: CSignedVec<TopicHeaders>,
 }
 
 #[derive(Debug, Encode, Decode, Size)]
@@ -385,6 +381,31 @@ mod tests {
             decoded.records[0].value.0,
             "Hello Reverse Engineering!".to_string()
         );
+    }
+
+    #[test]
+    fn test_topic_fetch() {
+        let test_case: Vec<u8> = vec![
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 68, 0, 0, 0, 0, 2, 152, 236, 24, 211, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 36, 0, 0, 0, 1, 24, 72, 101, 108, 108, 111, 32, 87,
+            111, 114, 108, 100, 33, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 82, 0, 0, 0, 0, 2, 139,
+            170, 135, 42, 0, 0, 0, 0, 0, 0, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 1, 145, 224, 91,
+            109, 139, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 64, 0, 0, 0, 1, 52, 72,
+            101, 108, 108, 111, 32, 82, 101, 118, 101, 114, 115, 101, 32, 69, 110, 103, 105, 110,
+            101, 101, 114, 105, 110, 103, 33, 0,
+        ];
+
+        let mut offset = 0;
+
+        let mut data: Vec<TopicRecordBatch> = Vec::new();
+
+        while offset < test_case.len() {
+            let decoded = TopicRecordBatch::decode(&test_case[..], &mut offset);
+            data.push(decoded);
+        }
+
+        assert_eq!(data.len(), 2);
     }
 
     #[test]
