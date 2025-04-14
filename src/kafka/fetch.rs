@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use crate::{
     kafka::log::read_topic_metadata,
@@ -170,16 +170,13 @@ impl FetchResponse {
         } else {
             let mut ts: Vec<FetchTopicResponse> = vec![];
             let topics_from_disk = get_topics().await?;
-            let mut topics_uuid = HashSet::new();
-            topics_from_disk.iter().for_each(|(_, value)| {
-                topics_uuid.insert(value.id.clone());
-            });
+            let mut topics_by_uuid: HashMap<_, _> = HashMap::new();
+
+            for (name, value) in &topics_from_disk {
+                topics_by_uuid.insert(value.id.clone(), name.clone());
+            }
             for topic in topics {
-                if let Some(_) = topics_uuid.get(&topic.topic_id) {
-                    let topic_name = match topics_from_disk.iter().find(|(k, v)| v.name.0 == **k) {
-                        Some(value) => value.0,
-                        None => continue,
-                    };
+                if let Some(topic_name) = topics_by_uuid.get(&topic.topic_id) {
                     for partition in &topic.partitions.data {
                         ts.push(
                             FetchTopicResponse::known_topic(
