@@ -165,7 +165,8 @@ pub async fn get_topic_records_from_disk(
         data.push(batch);
     }
 
-    println!("{data:?}");
+    println!("Data after log file: {data:?}");
+    println!("length: {:?}", data.len());
 
     Ok(data)
 }

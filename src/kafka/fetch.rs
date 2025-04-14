@@ -164,12 +164,10 @@ impl FetchResponse {
         } else {
             let mut ts: Vec<FetchTopicResponse> = vec![];
             let topics_from_disk = get_topics().await?;
-            println!("{topics_from_disk:?}");
             let mut topics_uuid = HashSet::new();
             topics_from_disk.iter().for_each(|(_, value)| {
                 topics_uuid.insert(value.id.clone().to_string());
             });
-            println!("{topics_uuid:?}");
             for topic in topics {
                 if let Some(_) = topics_uuid.get(&topic.topic_id.to_string()) {
                     let topic_name = match topics_from_disk.iter().find(|(k, v)| v.name.0 == **k) {
@@ -177,8 +175,6 @@ impl FetchResponse {
                         None => continue,
                     };
                     for partition in &topic.partitions.data {
-                        println!("{:?}", topic.topic_id);
-                        println!("{:?}", topic_name);
                         ts.push(
                             FetchTopicResponse::known_topic(
                                 topic.topic_id.clone(),
@@ -218,6 +214,8 @@ impl FetchRequest {
         let res_size = response.size_in_bytes() - 4;
 
         response.basev1.base.size = res_size as i32;
+
+        println!("{response:?}");
 
         Ok(response)
     }
