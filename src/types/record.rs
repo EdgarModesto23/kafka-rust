@@ -22,8 +22,6 @@ impl Decode for GenericRecord {
         let t = u8::decode(bytes, offset);
         let _v = u8::decode(bytes, offset);
 
-        println!("DEBUG record value: {t}");
-
         let r_record = match t {
             12 => RecordValue::FeatureLevel(FeatureLevelRecord::decode(bytes, offset)),
             2 => RecordValue::Topic(TopicRecord::decode(bytes, offset)),

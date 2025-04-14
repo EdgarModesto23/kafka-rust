@@ -51,15 +51,12 @@ pub struct CString(pub String, pub usize);
 
 impl Decode for CString {
     fn decode(bytes: &[u8], offset: &mut usize) -> Self {
-        println!("offset at cstring: {offset:?}");
         let mut len = UVarint::decode(bytes, offset);
-        println!("len detected: {len:?}");
         if len.0 < 1 {
             len.0 = 1
         }
         let value =
             String::from_utf8(bytes[*offset..*offset + (len.0 - 1) as usize].to_vec()).unwrap();
-        println!("value: {value:?}");
         *offset += value.len();
 
         Self(value, len.1)
