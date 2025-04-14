@@ -75,13 +75,14 @@ impl FetchTopicResponse {
             tagged_field: 0,
         }
     }
-    pub async fn known_topic(topic_id: UUID, idx: i32, topic_name: &str) -> Result<Self, Error> {
-        let data = FetchPartitionsResponse::known_topic(topic_name, idx).await?;
-        Ok(Self {
+    pub fn known_topic(topic_id: UUID) -> Self {
+        Self {
             topic_id,
-            partitions: CVec { data: vec![data] },
+            partitions: CVec {
+                data: vec![FetchPartitionsResponse::known_topic()],
+            },
             tagged_field: 0,
-        })
+        }
     }
 }
 
@@ -108,13 +109,12 @@ impl FetchPartitionsResponse {
             log_start_offset: 0,
             aborted_transactions: CVec { data: vec![] },
             preferred_read_replica: 0,
-            records: CVec { data: vec![] },
+            records: 0,
             tagged_field: 0,
         }
     }
-    pub async fn known_topic(name: &str, idx: i32) -> Result<Self, Error> {
-        let data = get_topic_records_from_disk(name, idx).await?;
-        Ok(Self {
+    pub async fn known_topic() -> Self {
+        Self {
             partition_idx: 0,
             error_code: 0,
             high_watermark: 0,
@@ -122,9 +122,9 @@ impl FetchPartitionsResponse {
             log_start_offset: 0,
             aborted_transactions: CVec { data: vec![] },
             preferred_read_replica: 0,
-            records: CVec { data },
+            records: CVec,
             tagged_field: 0,
-        })
+        }
     }
 }
 
@@ -174,14 +174,7 @@ impl FetchResponse {
                     let topic_partitions =
                         get_topic_records_from_disk(topic_name, file_idx).await?;
                     println!("{topic_partitions:?}");
-                    ts.push(
-                        FetchTopicResponse::known_topic(
-                            topic.topic_id.clone(),
-                            file_idx,
-                            topic_name,
-                        )
-                        .await?,
-                    );
+                    ts.push(FetchTopicResponse::known_topic(topic.topic_id.clone()));
                 } else {
                     ts.push(FetchTopicResponse::unknown_topic(topic.topic_id.clone()));
                 }

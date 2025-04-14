@@ -1,4 +1,5 @@
 pub mod array;
+pub mod bytes;
 pub mod cstring;
 pub mod integers;
 pub mod kafkastring;

@@ -11,6 +11,7 @@ use topic_log::TopicRecord;
 use crate::{
     types::{
         array::{CSignedVec, CVec},
+        bytes::ByteBuf,
         cstring::CString,
         record::GenericRecord,
         uvarint::UVarint,
@@ -111,6 +112,37 @@ pub async fn get_topics() -> Result<HashMap<String, TopicResponse>, Error> {
     Ok(topic_map)
 }
 
+pub async fn get_topic_records_from_disk(name: &str, idx: i32) -> Result<Vec<u8>, Error> {
+    let mut file = File::open(format!(
+        "/tmp/kraft-combined-logs/{}-{}/00000000000000000000.log",
+        name, idx
+    ))
+    .await?;
+
+    let metadata = file.metadata().await?;
+
+    let mut buf = Vec::with_capacity(metadata.len().try_into()?);
+
+    file.read_to_end(&mut buf).await?;
+
+    println!("data: {buf:?}");
+
+    if buf.is_empty() {
+        return Ok(vec![]);
+    }
+
+    let mut offset = 0;
+    let batch = MessageData::decode(&buf[..], &mut offset);
+
+    println!("{batch:?}");
+    println!(
+        "{:?}",
+        String::from_utf8(batch.message.0).expect("Invalid utf8")
+    );
+
+    Ok(buf)
+}
+
 pub async fn get_records_from_disk() -> Result<Vec<RecordBatch>, Error> {
     let mut file = File::open(CLUSTER_METADATA).await?;
 
@@ -153,6 +185,28 @@ pub enum RecordValue {
 #[derive(Debug, Encode, Decode, Size)]
 pub struct LogFile {
     pub data: Vec<RecordBatch>,
+}
+
+#[derive(Debug, Encode, Decode, Size)]
+pub struct MessageData {
+    pub base_offset: i64,
+    pub batch_length: i32,
+    pub partition_leader_epoch: i32,
+    pub magic_byte: u8,
+    pub crc: i32,
+    pub attributes: i16,
+    pub last_offset_delta: i32,
+    pub base_timestamp: i64,
+    pub max_timestamp: i64,
+    pub producer_id: i64,
+    pub producer_epoch: i16,
+    pub base_sequence: i32,
+    pub length: Varint,
+    pub attributes_record: u8,
+    pub timestamp: Varint,
+    pub delta_offset: Varint,
+    pub key: CSignedVec<i32>,
+    pub message: ByteBuf,
 }
 
 #[derive(Debug, Encode, Decode, Size)]
@@ -250,6 +304,28 @@ mod tests {
             }
             _ => panic!("Expected Feature level to be decoded"),
         }
+    }
+
+    #[test]
+    fn topic_batch() {
+        let test_case: Vec<u8> = vec![
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 82, 0, 0, 0, 0, 2, 139, 170, 135, 42, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 64, 0, 0, 0, 1, 52, 72, 101, 108, 108, 111, 32, 82,
+            101, 118, 101, 114, 115, 101, 32, 69, 110, 103, 105, 110, 101, 101, 114, 105, 110, 103,
+            33, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 68, 0, 0, 0, 0, 2, 100, 97, 124, 74, 0, 0, 0,
+            0, 0, 0, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 1, 145, 224, 91, 109, 139, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 36, 0, 0, 0, 1, 24, 72, 101, 108, 108, 111,
+            32, 69, 97, 114, 116, 104, 33, 0,
+        ];
+
+        let mut offset = 0;
+
+        let decoded = RecordBatch::decode(&test_case[..], &mut offset);
+
+        println!("{decoded:?}");
+
+        assert_eq!(decoded.base_offset, 1);
     }
 
     #[test]
