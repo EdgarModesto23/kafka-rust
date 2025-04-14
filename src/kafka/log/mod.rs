@@ -210,7 +210,7 @@ pub struct TopicRecordDisk {
     pub timestamp: Varint,
     pub delta_offset: Varint,
     pub key: CSignedVec<i32>,
-    pub value: CString,
+    pub value: String,
     pub headers_array: UVarint,
 }
 
