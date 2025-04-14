@@ -164,6 +164,9 @@ pub async fn get_topic_records_from_disk(
         batch.crc = crc;
         data.push(batch);
     }
+
+    println!("{data:?}");
+
     Ok(data)
 }
 
@@ -184,8 +187,6 @@ pub async fn get_records_from_disk() -> Result<Vec<RecordBatch>, Error> {
         let batch = RecordBatch::decode(&buf[..], &mut offset);
         batches.push(batch);
     }
-
-    println!("{batches:?}");
 
     Ok(batches)
 }
